@@ -1,5 +1,6 @@
 """Web API."""
 import io
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile
@@ -12,7 +13,7 @@ from baitwatch.main import detect_fishes
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: RUF029
     """Application's lifespan.
 
     Put resources that should be initialized once before the app,
@@ -40,12 +41,18 @@ app = FastAPI(
 
 
 @app.post("/detect-fishes/")
-async def detect(detection_type: FishDetectionEnum, image_file: UploadFile) -> PredictionResult | dict[str, str]:
+async def detect(
+        detection_type: FishDetectionEnum,
+        image_file: UploadFile,
+) -> PredictionResult | dict[str, str]:
     """Request a fish detection on given image, according to the detection type.
 
-    - **detection_type** (FishDetectionEnum): Type of detection to use.
-    - **image_file** (UploadFile): image to detect fishes from.
-    - Returns: Nothing for now
+    Args:
+        detection_type (FishDetectionEnum): Type of detection to use.
+        image_file (UploadFile): image to detect fishes from.
+
+    Returns:
+         Nothing for now
     """
     # Ensure Enum object is used
     detection_type = FishDetectionEnum(detection_type)
@@ -65,8 +72,9 @@ async def detect(detection_type: FishDetectionEnum, image_file: UploadFile) -> P
 
 @app.get("/ping/")
 async def ping() -> list[str]:
-    """PING
+    """PING.
 
-    Returns: PONG
+    Returns:
+        PONG
     """
     return ["pong"]
