@@ -1,0 +1,117 @@
+[project]
+name = "baitwatch"
+version = "0.1.0"
+description = "CNN models for fish detection and species identification in BRUVs video."
+requires-python = ">=3.11"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/AurelienChagnon/baitwatch.git"
+keywords    = ["Deep Learning", "Computer Vision", "Fish Detection", "BRUV"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Typing :: Typed"
+]
+dependencies = [
+    "fastapi>=0.135.1",
+    "google-cloud-storage>=3.10.0",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.3",
+    "opencv-python>=4.13.0.92",
+    "pandas>=3.0.1",
+    "pillow>=12.1.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "python-multipart>=0.0.22",
+    "scikit-learn>=1.8.0",
+    "uvicorn>=0.42.0",
+]
+
+[dependency-groups]
+dev = [
+    "tensorflow>=2.21.0",
+]
+prod = [
+    "tensorflow-cpu>=2.21.0",
+]
+
+#[tool.ruff]
+#line-length = 99
+#
+#[tool.ruff.lint]
+#preview = true
+#select = [
+#    # pycodestyle
+#    "E",
+#    # warning pycodstyle
+#    "W",
+#    # Pyflakes
+#    "F",
+#    # pyupgrade
+#    "UP",
+#    # flake8-bugbear
+#    "B",
+#    # flake8-simplify
+#    "SIM",
+#    # isort
+#    "I",
+#    # flake8-pytest-style
+#    "PT",
+#    # flake8-name
+#    "N",
+#    # flake8-annotations
+#    "ANN",
+#    # flake8-async
+#    "ASYNC",
+#    # flake8-pathlib
+#    "PTH",
+#    # flake8-arguments
+#    "ARG",
+#    # flake8-builtin
+#    "A",
+#    # flake8-print
+#    "T",
+#    # flake8-log-format
+#    "G",
+#    # pylint
+#    "PL",
+#    # Pydoclint
+#    "DOC",
+#    # pydocstyle
+#    "D",
+#    # RUFF
+#    "RUF",
+#    # Tryceratops
+#    "TRY",
+#    # bandit
+#    "S",
+#    # Perflint
+#    "PERF",
+#    # FastAPI
+#    "FAST",
+#    # Numpy
+#    "NPY",
+#    # Pandas
+#    "PD",
+#]
+#ignore = [
+#    # Allow Any type
+#    "ANN401",
+#]
+#
+#[tool.ruff.lint.pycodestyle]
+#max-doc-length = 99
+#
+#[tool.ruff.lint.pydocstyle]
+#convention = "google"

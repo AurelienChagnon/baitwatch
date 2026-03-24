@@ -1,6 +1,6 @@
 # 🎣 Baitwatch
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00.svg)](https://www.tensorflow.org/)
 [![Keras](https://img.shields.io/badge/Keras-3.x-D00000.svg)](https://keras.io/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-27338e.svg?logo=opencv&logoColor=white)](https://opencv.org/)
@@ -102,7 +102,8 @@ The 19 raw species observed in the dataset are grouped into **8 classification c
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
+- Uv project manager ([official install guide](https://docs.astral.sh/uv/getting-started/installation/))
 - CUDA-capable GPU recommended (≥ 6 GB VRAM)
 - TensorFlow 2.x with GPU support ([official install guide](https://www.tensorflow.org/install))
 - FastAPI + Uvicorn (`pip install fastapi uvicorn`)
@@ -123,12 +124,11 @@ conda env create -f environment.yml
 conda activate baitwatch
 ```
 
-Using **pip**:
+Using **uv**:
 
 ```bash
-python -m venv .venv
+uv sync --dev
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
 ```
 
 ### 3. Install in editable mode
@@ -141,7 +141,6 @@ pip install -e .
 
 ```bash
 python -c "import tensorflow as tf; print(tf.__version__); print(tf.config.list_physical_devices('GPU'))"
-pytest tests/ -v
 ```
 
 ---

@@ -1,25 +1,50 @@
-# Stage 1: Builder
-FROM python:3.10-slim-bookworm AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+
+# Omit development dependencies
+ENV UV_NO_DEV=1
+
+# Disable Python downloads, because we want to use the system interpreter
+# across both images. If using a managed Python version, it needs to be
+# copied from the build image into the final image
+ENV UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
-COPY requirements_prod.txt .
-RUN apt update && pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements_prod.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
+COPY pyproject.toml uv.lock /app/
+COPY baitwatch /app/baitwatch/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --group prod
 
-# Stage 2: Runtime (Final Image)
-FROM python:3.10-slim-bookworm
 
-# Opecv Dependencies
-RUN apt update && apt install -y python3-opencv
+# Then, use a final image without uv
+FROM python:3.12-slim-bookworm
+# It is important to use the image that matches the builder, as the path to the
+# Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
+# will fail.
 
+# Setup a non-root user and dependencies
+RUN groupadd --system --gid 999 nonroot \
+ && useradd --system --gid 999 --uid 999 --create-home nonroot \
+ && apt update && apt install -y python3-opencv
+
+# Copy the application from the builder
+COPY --from=builder --chown=nonroot:nonroot /app /app
+
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Use the non-root user to run our application
+USER nonroot
+
+# Use `/app` as the working directory
 WORKDIR /app
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements_prod.txt .
-RUN pip install --no-cache --no-index --find-links=/wheels -r requirements_prod.txt && \
-    rm -rf /wheels
+
 # Create needed directories
 RUN mkdir model; mkdir raw_data; mkdir processed_data
 
-# Copy project last (regularly updated)
-COPY baitwatch baitwatch
-
-CMD uvicorn baitwatch.interfaces.api:app --host 0.0.0.0 --port $PORT
+# Run the FastAPI application by default
+CMD ["uvicorn", "baitwatch.interfaces.api:app", "--host", "0.0.0.0", "--port", "8080"]
