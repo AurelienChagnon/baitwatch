@@ -1,11 +1,11 @@
 """Baitwatch — Main Pipeline
-download_data : télécharge les données en local
-preprocess_dataset : préprocesse les images et sauvegarde
-train : entraîne le modèle sur le dataset préprocessé
-evaluate : évalue le modèle sur le jeu de test
-classification_report : affiche le rapport de classification
-run_cycle : exécute le cycle complet (download → preprocess → train → report)
-detect_fishes : détection de poissons sur une image
+download_data : downloads data locally
+preprocess_dataset : preprocesses images and saves them
+train : trains the model on the preprocessed dataset
+evaluate : evaluates the model on the test set
+classification_report : displays the classification report
+run_cycle : executes the complete cycle (download → preprocess → train → report)
+detect_fishes : fish detection on an image
 """
 
 import numpy as np
@@ -79,7 +79,7 @@ def preprocess_data(task_type: FishDetectionEnum):
 
 
 def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
-    """Construit, compile et entraîne le modèle, puis sauvegarde + affiche les courbes."""
+    """Builds, compiles and trains the model, then saves + displays the curves."""
     print(f"🏋️ Train model({model_type})...")
     # Cast str as Enum object (from Make)
     model_type = FishDetectionEnum(model_type)

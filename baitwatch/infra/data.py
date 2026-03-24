@@ -62,7 +62,7 @@ def get_images(
     if not list(directory_path.iterdir()):
         raise FileNotFoundError(f"No data found at {directory_path}")
 
-    # image_dataset_from_directory récupère les images dans le directory
+    # image_dataset_from_directory retrieves images from the directory
     images_train = tf.keras.utils.image_dataset_from_directory(directory_path / "images" / "train",
                                                                labels=None,
                                                                batch_size=None,
@@ -207,18 +207,18 @@ def get_processed_dataset(
 def dl_augmented_images(
     directory_path: Path = dataset_settings.RAW_DATA_PATH,
     ) -> tf.data.Dataset:
-    """Charge les images augmentées depuis le local.
-    Si elles ne sont pas disponibles, les télécharge depuis le bucket d'abord.
+    """Loads augmented images from local storage.
+    If not available, downloads them from the bucket first.
 
-    Args :
-        directory_path : chemin local vers raw_data/
+    Args:
+        directory_path : local path to raw_data/
 
-    Returns :
-        None, only prints (dl data in local)
+    Returns:
+        None, only prints (downloads data locally)
     """
     augmented_path = directory_path / 'augmented_images'
 
-    # ── Télécharge si pas en local ────────────────────────
+    # ── Download if not available locally ────────────────────────
     if not augmented_path.is_dir() or not [f for f in augmented_path.iterdir() if not f.name.startswith('.')]:
         print("✋ Augmented data not found, downloading from bucket...")
         client = storage.Client()

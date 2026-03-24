@@ -1,9 +1,9 @@
 """Baitwatch — Preprocessing
-white_balance : correction auto de la balance des blancs
-contrast_enhance : amélioration auto du contraste
-flip/rot/noise : augmentation des images avec adaptation des labels
-preprocess : pipeline complète de preprocessing (white balance → contraste → resize)
-augment_preprocess : multiplie le dataset x8 avec augmentations
+white_balance : automatic white balance correction
+contrast_enhance : automatic contrast enhancement
+flip/rot/noise : image augmentation with label adaptation
+preprocess : complete preprocessing pipeline (white balance → contrast → resize)
+augment_preprocess : multiplies dataset by 8 with augmentations
 """
 
 import cv2 as cv

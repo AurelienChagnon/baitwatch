@@ -17,38 +17,38 @@ def train_model(model,
                 patience: int = 5,
                 class_weights: dict = None,
                 ) -> tuple[dict, keras.Model]:
-    """Entraîne le modèle et
-    renvoie l'historique de l'entraînement et le modèle entraîné
+    """Trains the model and
+    returns the training history and the trained model
 
     Usage:
         >>> history, model = train_model(model, X_train, y_train, validation_data=(X_val, y_val))
 
         >>> history, model = train_model(model, X_train_dataset, validation_data=X_val_dataset)
 
-    Args :
-        model: le modèle à entraîner
-        train_data: données d'entraînement
-        validation_data: données de validation
-        batch_size: taille des batches
-        epochs: nombre maximum d'epochs
-        patience: nombre d'epochs sans amélioration avant d'arrêter
+    Args:
+        model: the model to train
+        train_data: training data
+        validation_data: validation data
+        batch_size: batch size
+        epochs: maximum number of epochs
+        patience: number of epochs without improvement before stopping
 
-    Returns :
-        history: historique de l'entraînement (loss, accuracy, etc.)
-        model: le modèle entraîné
+    Returns:
+        history: training history (loss, accuracy, etc.)
+        model: the trained model
     """
     early_stopping = EarlyStopping(
-        monitor='val_loss',  # surveille la loss sur la validation
-        patience=patience,  # arrête si pas d'amélioration après [patience] epochs
-        restore_best_weights=True  # remet les poids du meilleur epoch
+        monitor='val_loss',  # monitors loss on validation
+        patience=patience,  # stops if no improvement after [patience] epochs
+        restore_best_weights=True  # restores weights from best epoch
     )
 
     history = model.fit(
-        *train_data,  # données d'entraînement
-        validation_data=validation_data,  # données de validation
+        *train_data,  # training data
+        validation_data=validation_data,  # validation data
         epochs=epochs,  # maximum 50 epochs
-        batch_size=batch_size,  # 32 images par batch
-        callbacks=[early_stopping],  # arrête automatiquement si plateau
+        batch_size=batch_size,  # 32 images per batch
+        callbacks=[early_stopping],  # automatically stops if plateau
         class_weight=class_weights,
     )
     return history, model
@@ -101,18 +101,18 @@ def get_classification_report(
 
 
 def plot_history(history):
-    """Affiche les courbes d'accuracy et de loss train vs validation
+    """Displays accuracy and loss curves train vs validation
 
-    Args :
-        history : historique retourné par model.fit()
+    Args:
+        history : history returned by model.fit()
     """
-    print("📊 Génération des courbes d'entraînement...")
+    print("📊 Generating training curves...")
 
     _, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # ── Accuracy ─────────────────────────────────────────
-    axes[0].plot(history.history['accuracy'], label='Train')      # courbe train
-    axes[0].plot(history.history['val_accuracy'], label='Validation')  # courbe val
+    axes[0].plot(history.history['accuracy'], label='Train')      # train curve
+    axes[0].plot(history.history['val_accuracy'], label='Validation')  # val curve
     axes[0].set_title('Accuracy')
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Accuracy')
@@ -120,19 +120,19 @@ def plot_history(history):
     axes[0].grid(True, alpha=0.3)
 
     # ── Loss ─────────────────────────────────────────────
-    axes[1].plot(history.history['loss'], label='Train')          # courbe train
-    axes[1].plot(history.history['val_loss'], label='Validation')     # courbe val
+    axes[1].plot(history.history['loss'], label='Train')          # train curve
+    axes[1].plot(history.history['val_loss'], label='Validation')     # val curve
     axes[1].set_title('Loss')
     axes[1].set_xlabel('Epoch')
     axes[1].set_ylabel('Loss')
     axes[1].legend()
     axes[1].grid(True, alpha=0.3)
 
-    plt.suptitle('Progression de l\'entraînement', fontsize=14)
+    plt.suptitle('Training Progress', fontsize=14)
     plt.tight_layout()
     plt.show()
 
-    print("✅ Courbes affichées")
+    print("✅ Curves displayed")
 
 
 def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:

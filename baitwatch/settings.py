@@ -1,4 +1,4 @@
-"""Project Settings"""
+"""Project Settings."""
 
 from pathlib import Path
 
@@ -31,7 +31,7 @@ class IfspSettings(BaseSettings):
 
 
 class ModelSettings(BaseSettings):
-    """Settings about models"""
+    """Settings about models."""
     MODEL_LOCAL_PATH: DirectoryPath = PROJECT_PATH / "model"
     MODEL_TARGET: str = "local"
 

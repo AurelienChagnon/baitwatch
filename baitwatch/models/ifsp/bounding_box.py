@@ -1,7 +1,7 @@
 """Baitwatch — Bounding Box Pipeline
-build_bbox_dataframe : parse les labels YOLO → DataFrame
-crop_bb : crop les bounding boxes depuis les images
-reshape_pad_crop : resize + pad les crops au format cible
+build_bbox_dataframe : parses YOLO labels → DataFrame
+crop_bb : crops bounding boxes from images
+reshape_pad_crop : resizes + pads crops to target format
 """
 
 import cv2 as cv
@@ -45,7 +45,7 @@ def build_bbox_dataframe(
                 "area": w * h
             })
 
-    print(f"✅ {len(rows)} bounding boxes extracted from {idx + 1} fichiers labels")
+    print(f"✅ {len(rows)} bounding boxes extracted from {idx + 1} label files")
 
     return pd.DataFrame(rows)
 

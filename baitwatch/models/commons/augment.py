@@ -73,7 +73,7 @@ def augment_images(img, label):
     img_ud = flip_up_down(img)
     img_180 = rotate_180(img)
 
-    # Force le cast en uint8 pour chaque transformation photométrique
+    # Force cast to uint8 for each photometric transformation
     img_br = tf.cast(tf.image.random_brightness(img, max_delta=0.8), tf.uint8)
     img_ct = tf.cast(tf.image.random_contrast(img, lower=0.2, upper=2.5), tf.uint8)
     img_st = tf.cast(tf.image.random_saturation(img, lower=0.0, upper=6.0), tf.uint8)
