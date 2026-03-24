@@ -1,12 +1,4 @@
-"""Baitwatch — Main Pipeline
-download_data : downloads data locally
-preprocess_dataset : preprocesses images and saves them
-train : trains the model on the preprocessed dataset
-evaluate : evaluates the model on the test set
-classification_report : displays the classification report
-run_cycle : executes the complete cycle (download → preprocess → train → report)
-detect_fishes : fish detection on an image
-"""
+"""Baitwatch — Main Pipeline."""
 
 import numpy as np
 from PIL import ImageFile
@@ -40,21 +32,22 @@ from baitwatch.settings import (
 )
 
 # Define image sizes
-# REMEMBER Preprocess with Opencv, which reverse order of image size compared to tensorflow used to load data
+# REMEMBER Preprocess with Opencv
+# which reverse order of image size compared to tensorflow used to load data
 DETECTION_TYPE_TO_IMG_SIZE = {
     FishDetectionEnum.FONF: fonf_settings.PREPROCESS_IMG_SIZE[::-1],
     FishDetectionEnum.IFSP: ifsp_settings.CROP_IMG_SIZE,
 }
 
 
-def download_data():
+def download_data() -> None:
     """Download data locally."""
     print("⬇️ Downloading data...")
     dl_data(directory_path=dataset_settings.RAW_DATA_PATH)
     print("✅ Data downloaded")
 
 
-def preprocess_data(task_type: FishDetectionEnum):
+def preprocess_data(task_type: FishDetectionEnum) -> None:
     """Process the data locally and save them."""
     print("🔧 Starting dataset preprocessing...")
     task_type = FishDetectionEnum(task_type)
@@ -62,7 +55,9 @@ def preprocess_data(task_type: FishDetectionEnum):
         directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME,
         image_size=dataset_settings.ORIGINAL_SIZE,
     )
-    labels_train, labels_val, labels_test = get_labels(directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME)
+    labels_train, labels_val, labels_test = get_labels(
+        directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME
+    )
 
     print("   Preprocessing images...")
     processor = process_data(task_type)
@@ -71,9 +66,10 @@ def preprocess_data(task_type: FishDetectionEnum):
     x_test, y_test = processor(imgs_test, labels_test)
 
     print("💾 Saving preprocessed datasets...")
-    save_image_dataset(x_train, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "train", labels=y_train)
-    save_image_dataset(x_val, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "val", labels=y_val)
-    save_image_dataset(x_test, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "test", labels=y_test)
+    task_path = dataset_settings.PROCESSED_DATA_PATH / task_type.value
+    save_image_dataset(x_train, task_path / "train", labels=y_train)
+    save_image_dataset(x_val, task_path / "val", labels=y_val)
+    save_image_dataset(x_test, task_path / "test", labels=y_test)
 
     print("✅ Preprocessing completed and saved")
 
@@ -85,8 +81,10 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     model_type = FishDetectionEnum(model_type)
 
     model_dir_path = f"{model_type.value}_augmented" if augmented else f"{model_type.value}"
-    x_train_ds, x_val_ds, _ = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / model_dir_path,
-                                                    image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type])
+    x_train_ds, x_val_ds, _ = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / model_dir_path,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+    )
 
     print(f"🛠️️ Building model {model_type}...")
     model = get_compiled_model(model_type)
@@ -96,7 +94,12 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     if model_type == FishDetectionEnum.IFSP:
         # Manage class unbalanced
         class_weights = get_class_weights(x_train_ds, encoded=True)
-    history, model = train_model(model, x_train_ds, validation_data=x_val_ds, class_weights=class_weights)
+    history, model = train_model(
+        model,
+        x_train_ds,
+        validation_data=x_val_ds,
+        class_weights=class_weights,
+    )
 
     print("💾 Saving model...")
     save_model(model, model_type, model_settings.MODEL_LOCAL_PATH)
@@ -104,7 +107,7 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     plot_history(history)
 
 
-def evaluate(model_type: FishDetectionEnum):
+def evaluate(model_type: FishDetectionEnum) -> None:
     """Evaluate the model on the test set and display the metrics."""
     print(f"🧪 Model evaluating ({model_type})...")
 
@@ -112,8 +115,10 @@ def evaluate(model_type: FishDetectionEnum):
     model_type = FishDetectionEnum(model_type)
     model = load_model(model_type, model_settings.MODEL_LOCAL_PATH)
 
-    _, _, x_test_ds = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / model_type.value,
-                                            image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type])
+    _, _, x_test_ds = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / model_type.value,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+    )
 
     results = model.evaluate(x_test_ds, return_dict=True)
     print(results)
@@ -149,7 +154,11 @@ def run_cycle(task_type: FishDetectionEnum) -> None:
     print("🏁 Full cycle completed")
 
 
-def detect_fishes(model: Model, detection_type: FishDetectionEnum, image: ImageFile.ImageFile) -> list[list[float]]:
+def detect_fishes(
+        model: Model,
+        detection_type: FishDetectionEnum,
+        image: ImageFile.ImageFile,
+) -> list[list[float]]:
     """Request a fish detection on given image, based on given model.
 
     Perform preprocessing on image then predict on processed image.
@@ -171,7 +180,7 @@ def detect_fishes(model: Model, detection_type: FishDetectionEnum, image: ImageF
     return results
 
 
-def save_augmented():
+def save_augmented() -> None:
     """Orchestrates the augmentation and local storage of the IFSP dataset splits.
 
     This function performs the following steps:
@@ -183,10 +192,11 @@ def save_augmented():
     The resulting augmented images and labels are stored in subdirectories
     corresponding to their respective model types and splits.
     """
-    x_train, x_val, x_test = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / FishDetectionEnum.IFSP.value,
-                                                   image_size=ifsp_settings.CROP_IMG_SIZE,
-                                                   label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
-                                                   )
+    x_train, x_val, x_test = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / FishDetectionEnum.IFSP.value,
+        image_size=ifsp_settings.CROP_IMG_SIZE,
+        label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
+        )
 
     # Augment images, only need train
     x_train = augment_ds(x_train)
