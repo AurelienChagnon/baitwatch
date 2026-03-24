@@ -5,8 +5,7 @@ from baitwatch.settings import fonf_settings
 
 
 def build_model() -> keras.models.Model:
-    """
-    Build a CNN model for FONF task.
+    """Build a CNN model for FONF task.
     """
     # Input layer
     # REMEMBER Preprocess with Opencv, which reverse order of image size compared to tensorflow used to load data

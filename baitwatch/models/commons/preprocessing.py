@@ -1,5 +1,4 @@
-"""
-Baitwatch — Preprocessing
+"""Baitwatch — Preprocessing
 white_balance : correction auto de la balance des blancs
 contrast_enhance : amélioration auto du contraste
 flip/rot/noise : augmentation des images avec adaptation des labels

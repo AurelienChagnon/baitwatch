@@ -4,7 +4,7 @@ from tensorflow.data import Dataset
 
 from baitwatch.models.commons.preprocessing import preprocess_ds
 from baitwatch.models.ifsp.bounding_box import build_bbox_dataframe, crop_bb, reshape_pad_crop
-from baitwatch.settings import ifsp_settings, dataset_settings
+from baitwatch.settings import dataset_settings, ifsp_settings
 
 
 def process_data_ifsp(

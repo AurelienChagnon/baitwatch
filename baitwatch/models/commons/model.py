@@ -17,8 +17,7 @@ def train_model(model,
                 patience: int = 5,
                 class_weights: dict = None,
                 ) -> tuple[dict, keras.Model]:
-    """
-    Entraîne le modèle et
+    """Entraîne le modèle et
     renvoie l'historique de l'entraînement et le modèle entraîné
 
     Usage:
@@ -38,7 +37,6 @@ def train_model(model,
         history: historique de l'entraînement (loss, accuracy, etc.)
         model: le modèle entraîné
     """
-
     early_stopping = EarlyStopping(
         monitor='val_loss',  # surveille la loss sur la validation
         patience=patience,  # arrête si pas d'amélioration après [patience] epochs
@@ -69,7 +67,7 @@ def get_classification_report(
 
     Args:
         model: keras model to evaluate
-        validation_data: either a tf.Dataset with labels or np.ndarray X_val, y_val
+        validation_data: either a tf.Dataset with labels or np.ndarray x_val, y_val
                          containing data to get classification report from
 
     Returns:
@@ -87,36 +85,34 @@ def get_classification_report(
 
         # Iterator returns by batch, need concatenation to removed batch
         y_val = np.concatenate(labels, axis=0)
-        X_val = np.concatenate(validation_images, axis=0)
+        x_val = np.concatenate(validation_images, axis=0)
 
     elif len(validation_data) == 1:
         # Consider 2 args X_train and y_val as np.array
-        X_val, y_val = validation_data
+        x_val, y_val = validation_data
 
     else:
-        raise ValueError("Need either a tf.Dataset with labels or np.ndarray X_val, y_val !")
+        raise ValueError("Need either a tf.Dataset with labels or np.ndarray x_val, y_val !")
 
     # Model returns a probability of class 1 => round
-    y_pred = np.round(model.predict(X_val), 0)
+    y_pred = np.round(model.predict(x_val), 0)
 
     return classification_report(y_val, y_pred)
 
 
 def plot_history(history):
-    """
-    Affiche les courbes d'accuracy et de loss train vs validation
+    """Affiche les courbes d'accuracy et de loss train vs validation
 
     Args :
         history : historique retourné par model.fit()
     """
-
     print("📊 Génération des courbes d'entraînement...")
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    _, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # ── Accuracy ─────────────────────────────────────────
-    axes[0].plot(history.history['accuracy'],     label='Train')      # courbe train
-    axes[0].plot(history.history['val_accuracy'], label='Validation') # courbe val
+    axes[0].plot(history.history['accuracy'], label='Train')      # courbe train
+    axes[0].plot(history.history['val_accuracy'], label='Validation')  # courbe val
     axes[0].set_title('Accuracy')
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Accuracy')
@@ -124,7 +120,7 @@ def plot_history(history):
     axes[0].grid(True, alpha=0.3)
 
     # ── Loss ─────────────────────────────────────────────
-    axes[1].plot(history.history['loss'],     label='Train')          # courbe train
+    axes[1].plot(history.history['loss'], label='Train')          # courbe train
     axes[1].plot(history.history['val_loss'], label='Validation')     # courbe val
     axes[1].set_title('Loss')
     axes[1].set_xlabel('Epoch')
@@ -139,7 +135,7 @@ def plot_history(history):
     print("✅ Courbes affichées")
 
 
-def get_class_weights(dataset: Dataset, encoded:bool = False) -> dict:
+def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
     # Extract class labels
     class_labels = []
     for _, labels in dataset.unbatch():

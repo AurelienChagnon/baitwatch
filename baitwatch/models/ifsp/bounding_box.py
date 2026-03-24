@@ -1,5 +1,4 @@
-"""
-Baitwatch — Bounding Box Pipeline
+"""Baitwatch — Bounding Box Pipeline
 build_bbox_dataframe : parse les labels YOLO → DataFrame
 crop_bb : crop les bounding boxes depuis les images
 reshape_pad_crop : resize + pad les crops au format cible
@@ -16,10 +15,9 @@ def build_bbox_dataframe(
         labels_dataset: tf.data.Dataset,
         img_size: tuple[int, int] = dataset_settings.ORIGINAL_SIZE,
 ) -> pd.DataFrame:
+    """Reads YOLO label files and returns a DataFrame
+    with the pixel coordinates of each bounding box.
     """
-        Reads YOLO label files and returns a DataFrame
-        with the pixel coordinates of each bounding box.
-        """
     # BE CAREFUL EXPECT IMG SIZE TO BE IN TENSORFLOW FORMAT
     height, width = img_size
     rows = []
@@ -53,8 +51,7 @@ def build_bbox_dataframe(
 
 
 def crop_bb(labels_bb_df, img_dataset):
-    """
-    Crop each bounding box from the images.
+    """Crop each bounding box from the images.
     Returns the list of crops (np.array) and their class_id.
     """
     cropped_img = []
@@ -91,8 +88,7 @@ def crop_bb(labels_bb_df, img_dataset):
 
 
 def reshape_pad_crop(cropped_img, format_img):
-    """
-    Resize each crop while keeping the aspect ratio,
+    """Resize each crop while keeping the aspect ratio,
     then pad to reach the target format (h, w).
     """
     bb_crop_fin = []

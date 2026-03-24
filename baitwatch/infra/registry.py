@@ -4,8 +4,8 @@ from time import strftime
 from google.cloud import storage
 from tensorflow import keras
 
-from baitwatch.settings import model_settings, cloud_settings
 from baitwatch.domains.fish_detection import FishDetectionEnum
+from baitwatch.settings import cloud_settings, model_settings
 
 
 def save_model(
@@ -27,7 +27,7 @@ def save_model(
     print(f"✅ Model {model_name} saved locally at {model_path}")
 
     if model_settings.MODEL_TARGET == "gcs":
-        print(f"⏳ Saving model on GCS...")
+        print("⏳ Saving model on GCS...")
 
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
@@ -55,7 +55,7 @@ def load_model(
             raise FileNotFoundError(f"Path or directory does not exists: {path}")
 
         models = [file_path for file_path in path.iterdir() if file_path.name.endswith(".keras")]
-        if not models :
+        if not models:
             raise FileNotFoundError(f"No keras model found at {path}")
 
         # Get the last model (creation date) when no name passed

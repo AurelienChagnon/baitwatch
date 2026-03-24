@@ -1,5 +1,4 @@
-"""
-Baitwatch — Main Pipeline
+"""Baitwatch — Main Pipeline
 download_data : télécharge les données en local
 preprocess_dataset : préprocesse les images et sauvegarde
 train : entraîne le modèle sur le dataset préprocessé
@@ -15,13 +14,30 @@ from tensorflow.data import Dataset
 from tensorflow.keras import Model
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
-from baitwatch.infra.data import dl_data, save_image_dataset, get_processed_dataset, get_images, get_labels, save_augmented_to_local
-from baitwatch.infra.registry import save_model, load_model
-from baitwatch.models import process_data, get_preprocess, get_compiled_model
+from baitwatch.infra.data import (
+    dl_data,
+    get_images,
+    get_labels,
+    get_processed_dataset,
+    save_augmented_to_local,
+    save_image_dataset,
+)
+from baitwatch.infra.registry import load_model, save_model
+from baitwatch.models import get_compiled_model, get_preprocess, process_data
 from baitwatch.models.commons.augment import augment_ds
-from baitwatch.models.commons.model import train_model, get_classification_report, plot_history, get_class_weights
-from baitwatch.settings import dataset_settings, model_settings, fonf_settings, DATASET_NAME, \
-    ifsp_settings
+from baitwatch.models.commons.model import (
+    get_class_weights,
+    get_classification_report,
+    plot_history,
+    train_model,
+)
+from baitwatch.settings import (
+    DATASET_NAME,
+    dataset_settings,
+    fonf_settings,
+    ifsp_settings,
+    model_settings,
+)
 
 # Define image sizes
 # REMEMBER Preprocess with Opencv, which reverse order of image size compared to tensorflow used to load data
@@ -40,7 +56,6 @@ def download_data():
 
 def preprocess_data(task_type: FishDetectionEnum):
     """Process the data locally and save them."""
-
     print("🔧 Starting dataset preprocessing...")
     task_type = FishDetectionEnum(task_type)
     imgs_train, imgs_val, imgs_test = get_images(
@@ -91,7 +106,6 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
 
 def evaluate(model_type: FishDetectionEnum):
     """Evaluate the model on the test set and display the metrics."""
-
     print(f"🧪 Model evaluating ({model_type})...")
 
     # Cast str as Enum object
@@ -158,8 +172,7 @@ def detect_fishes(model: Model, detection_type: FishDetectionEnum, image: ImageF
 
 
 def save_augmented():
-    """
-    Orchestrates the augmentation and local storage of the IFSP dataset splits.
+    """Orchestrates the augmentation and local storage of the IFSP dataset splits.
 
     This function performs the following steps:
     1. Loads the preprocessed IFSP datasets (train, validation, and test) from

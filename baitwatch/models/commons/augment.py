@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def flip_left_right(image):
     """Flips the image horizontally (left to right).
 
@@ -68,8 +69,8 @@ def augment_images(img, label):
     Returns:
         tf.data.Dataset: A sliced dataset containing the 8 augmented (image, label) pairs.
     """
-    img_lr= flip_left_right(img)
-    img_ud= flip_up_down(img)
+    img_lr = flip_left_right(img)
+    img_ud = flip_up_down(img)
     img_180 = rotate_180(img)
 
     # Force le cast en uint8 pour chaque transformation photométrique
@@ -77,10 +78,10 @@ def augment_images(img, label):
     img_ct = tf.cast(tf.image.random_contrast(img, lower=0.2, upper=2.5), tf.uint8)
     img_st = tf.cast(tf.image.random_saturation(img, lower=0.0, upper=6.0), tf.uint8)
     img_ns = tf.cast(add_noise(img), tf.uint8)
-    img = tf.cast(img , tf.uint8)
-    img_lr = tf.cast(img_lr , tf.uint8)
-    img_ud = tf.cast(img_ud , tf.uint8)
-    img_180 = tf.cast(img_180 , tf.uint8)
+    img = tf.cast(img, tf.uint8)
+    img_lr = tf.cast(img_lr, tf.uint8)
+    img_ud = tf.cast(img_ud, tf.uint8)
+    img_180 = tf.cast(img_180, tf.uint8)
 
     aug_imgs = [img, img_lr, img_ud, img_180, img_br, img_ct, img_st, img_ns]
 

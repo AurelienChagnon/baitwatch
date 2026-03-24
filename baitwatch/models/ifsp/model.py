@@ -5,49 +5,48 @@ from baitwatch.settings import ifsp_settings
 
 
 def build_model() -> keras.models.Model:
-    """
-    Build a CNN model for IFSP task.
+    """Build a CNN model for IFSP task.
     """
     # Input layer
     img_size = ifsp_settings.CROP_IMG_SIZE
-    inputs  = keras.Input(shape=(*img_size, 3))
+    inputs = keras.Input(shape=(*img_size, 3))
 
     # Normalize images
-    x = keras.layers.Rescaling(scale=1./255)(inputs)
+    x = keras.layers.Rescaling(scale=1. / 255)(inputs)
 
     # Hidden layers Conv
     x = layers.Conv2D(32, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones", padding="same")(x)
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.MaxPooling2D((2, 2))(x)
 
     x = layers.Conv2D(64, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones", padding="same")(x)
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.MaxPooling2D((2, 2))(x)
 
     x = layers.Conv2D(128, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones", padding="same")(x)
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.Dropout(0.1)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.MaxPooling2D((2, 2))(x)
 
     x = layers.Conv2D(256, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones", padding="same")(x)
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.Dropout(0.1)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.MaxPooling2D((2, 2))(x)
 
     x = layers.Conv2D(512, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones", padding="same")(x)
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.Dropout(0.1)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.MaxPooling2D((2,2))(x)
+    x = layers.MaxPooling2D((2, 2))(x)
 
     # Hidden layers Dense
     x = layers.Flatten()(x)                                   # aplatit en 1D
@@ -69,7 +68,6 @@ def get_optimizer() -> keras.optimizers.Optimizer:
     lr = keras.optimizers.schedules.ExponentialDecay(0.0003, 200, 0.96)
     optimizer = keras.optimizers.Adam(learning_rate=lr)
     return optimizer
-
 
 
 def compile_model(model: keras.Model, optimizer: keras.optimizers.Optimizer) -> keras.Model:

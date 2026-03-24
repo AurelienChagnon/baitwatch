@@ -1,29 +1,25 @@
-from typing import Callable
+from collections.abc import Callable
 
 import keras
 import numpy as np
 from tensorflow.data import Dataset
 
-from baitwatch.models.fonf.model import (
-    build_model as fonf_model,
-    get_optimizer as fonf_optimizer,
-    compile_model as fonf_compile_model
-)
-from baitwatch.models.fonf.preprocessing import process_data_fonf, preprocess_fonf
-from baitwatch.models.ifsp.model import (
-    build_model as ifsp_model,
-    get_optimizer as ifsp_optimizer,
-    compile_model as ifsp_compile_model
-)
-from baitwatch.models.ifsp.preprocessing import process_data_ifsp, preprocess_ifsp
 from baitwatch.domains.fish_detection import FishDetectionEnum
+from baitwatch.models.fonf.model import build_model as fonf_model
+from baitwatch.models.fonf.model import compile_model as fonf_compile_model
+from baitwatch.models.fonf.model import get_optimizer as fonf_optimizer
+from baitwatch.models.fonf.preprocessing import preprocess_fonf, process_data_fonf
+from baitwatch.models.ifsp.model import build_model as ifsp_model
+from baitwatch.models.ifsp.model import compile_model as ifsp_compile_model
+from baitwatch.models.ifsp.model import get_optimizer as ifsp_optimizer
+from baitwatch.models.ifsp.preprocessing import preprocess_ifsp, process_data_ifsp
 
 __all__ = [
-    "process_data",
-    "get_preprocess",
     "get_build_model",
-    "get_optimizer",
     "get_compiled_model",
+    "get_optimizer",
+    "get_preprocess",
+    "process_data",
 ]
 
 

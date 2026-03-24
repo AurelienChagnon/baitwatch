@@ -3,18 +3,17 @@ from typing import Literal
 
 import numpy as np
 import tensorflow as tf
-from PIL import Image
 from google.cloud import storage
 from google.cloud.storage import transfer_manager
+from PIL import Image
 
-from baitwatch.settings import dataset_settings, cloud_settings, DATASET_NAME
+from baitwatch.settings import DATASET_NAME, cloud_settings, dataset_settings
 
 
 def dl_data(
         directory_path: Path = dataset_settings.RAW_DATA_PATH
 ) -> None:
-    """
-    Check if there is data locally,
+    """Check if there is data locally,
     otherwise download them from the bucket.
 
     Args: OPTIONAL
@@ -48,8 +47,7 @@ def get_images(
         directory_path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
         image_size: tuple[int, int] = dataset_settings.ORIGINAL_SIZE,
 ) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    """
-    Get images that are already splitted in test train val and send back them
+    """Get images that are already splitted in test train val and send back them
     in format (N, (image_size), 3)
     N : numbers of images in our dataset
     image_size : size of images, (256, 256) by default
@@ -61,7 +59,6 @@ def get_images(
 
     Returns : X_train, X_val, X_test
     """
-
     if not list(directory_path.iterdir()):
         raise FileNotFoundError(f"No data found at {directory_path}")
 
@@ -88,8 +85,7 @@ def get_images(
 def get_labels(
         directory_path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
 ) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    """
-    Get the labels of each images
+    """Get the labels of each images
 
     Returns : labels_train, labels_val, labels_test (Keras Dataset class)
     """
@@ -174,9 +170,8 @@ def get_processed_dataset(
         label_mode: (optional) type of labels either 'int' for bi-class, 'categorical' for multi-classes, default 'auto'
 
     Returns:
-        X_train_ds, X_val_ds, X_test_ds tf.data.Dataset
+        x_train_ds, x_val_ds, x_test_ds tf.data.Dataset
     """
-
     if not list(path.iterdir()):
         raise FileNotFoundError(f"No data found at {path}")
 
@@ -189,30 +184,30 @@ def get_processed_dataset(
         else:
             label_mode = 'int'
 
-    X_train_ds = tf.keras.utils.image_dataset_from_directory(path / "train",
+    x_train_ds = tf.keras.utils.image_dataset_from_directory(path / "train",
                                                              labels="inferred",
                                                              shuffle=True,
                                                              image_size=image_size,
                                                              label_mode=label_mode
                                                              )
-    X_val_ds = tf.keras.utils.image_dataset_from_directory(path / "val",
+    x_val_ds = tf.keras.utils.image_dataset_from_directory(path / "val",
                                                            labels="inferred",
                                                            shuffle=True,
                                                            image_size=image_size,
                                                            label_mode=label_mode)
-    X_test_ds = tf.keras.utils.image_dataset_from_directory(path / "test",
+    x_test_ds = tf.keras.utils.image_dataset_from_directory(path / "test",
                                                             labels="inferred",
                                                             shuffle=True,
                                                             image_size=image_size,
                                                             label_mode=label_mode)
 
-    return X_train_ds, X_val_ds, X_test_ds
+    return x_train_ds, x_val_ds, x_test_ds
+
 
 def dl_augmented_images(
     directory_path: Path = dataset_settings.RAW_DATA_PATH,
     ) -> tf.data.Dataset:
-    """
-    Charge les images augmentées depuis le local.
+    """Charge les images augmentées depuis le local.
     Si elles ne sont pas disponibles, les télécharge depuis le bucket d'abord.
 
     Args :
@@ -228,7 +223,7 @@ def dl_augmented_images(
         print("✋ Augmented data not found, downloading from bucket...")
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
-        blobs  = [blob.name for blob in client.list_blobs(cloud_settings.BUCKET_NAME, prefix="augmented_images")]
+        blobs = [blob.name for blob in client.list_blobs(cloud_settings.BUCKET_NAME, prefix="augmented_images")]
         transfer_manager.download_many_to_path(
             bucket,
             blobs,
@@ -236,14 +231,12 @@ def dl_augmented_images(
             skip_if_exists=True,
         )
         print("✅ Augmented data downloaded !")
-    else :
+    else:
         print("✅ You already have the augmented data !")
 
 
-def save_augmented_to_local(dataset: tf.data.Dataset, model_name: str , split: str):
-
-    """
-    Applies data augmentation to a dataset and saves the results to local storage.
+def save_augmented_to_local(dataset: tf.data.Dataset, model_name: str, split: str):
+    """Applies data augmentation to a dataset and saves the results to local storage.
 
     This function processes an input dataset using a flat_map transformation to
     generate multiple augmented variations (images and labels) for every original
