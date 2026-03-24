@@ -1,7 +1,9 @@
-from enum import Enum
+"""Define fish detection related domains."""
+
+from enum import StrEnum
 
 
-class FishDetectionEnum(str, Enum):
+class FishDetectionEnum(StrEnum):
     """Supported type of fish detection.
 
     FONF: Fish Or No Fish
