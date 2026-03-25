@@ -1,3 +1,8 @@
+"""Baitwatch - Infrastructure Registry.
+
+Manage model saving and loading in local and/or Cloud.
+"""
+
 from pathlib import Path
 from time import strftime
 
@@ -13,7 +18,14 @@ def save_model(
     model_type: FishDetectionEnum,
     path: Path = model_settings.MODEL_LOCAL_PATH
 ) -> None:
-    """Save the given model in given path and in the Cloud."""
+    """Save the given model in given path and in the Cloud.
+
+    Args:
+        model (keras.Model): The model to save.
+        model_type (FishDetectionEnum): The type of the model.
+        path (Path, optional): The path to save the model.
+            Defaults to model_settings.MODEL_LOCAL_PATH.
+    """
     model_path = path / model_type.value
     print(f"⏳ Saving model locally at {model_path}...")
 
@@ -45,18 +57,31 @@ def load_model(
     """Load the model from local or Cloud.
 
     If no model name is passed, return the last model in the path.
+
+    Args:
+        model_type (FishDetectionEnum): The type of the model to load.
+        path (Path, optional): The path to the model. Defaults to model_settings.MODEL_LOCAL_PATH.
+        model_name (str, optional): The name of the model to load. Defaults to "".
+
+    Returns:
+        keras.Model: The loaded model.
+
+    Raises:
+        FileNotFoundError: If the model is not found.
+        ValueError: If the model target is unknown.
     """
     print(f"⏳ Loading model for {model_type.value}...")
-    path = path / model_type.value
+    path /= model_type.value
 
     if model_settings.MODEL_TARGET == "local":
 
         if not path.exists():
-            raise FileNotFoundError(f"Path or directory does not exists: {path}")
+            raise FileNotFoundError(path)
 
         models = [file_path for file_path in path.iterdir() if file_path.name.endswith(".keras")]
         if not models:
-            raise FileNotFoundError(f"No keras model found at {path}")
+            error = f"{path} is empty"
+            raise FileNotFoundError(error)
 
         # Get the last model (creation date) when no name passed
         if not model_name:
@@ -64,8 +89,7 @@ def load_model(
             model_name = models[-1].name
 
         if path / model_name not in models:
-            raise FileNotFoundError(f"Model {model_name} not found at {path}")
-
+            raise FileNotFoundError(path / model_name)
         model = keras.models.load_model(path / model_name)
         print(f"✅ Model {model_name} loaded")
 
@@ -74,7 +98,12 @@ def load_model(
 
         client = storage.Client()
         # Don't get the bucket from client.bucket as rights can be different
-        blobs = list(client.list_blobs(cloud_settings.BUCKET_NAME, prefix=f"models/{model_type.value}"))
+        blobs = list(
+            client.list_blobs(
+                cloud_settings.BUCKET_NAME,
+                prefix=f"models/{model_type.value}",
+            )
+        )
 
         # Latest model
         latest_blob = max(blobs, key=lambda x: x.updated)
@@ -95,6 +124,6 @@ def load_model(
 
     else:
         # Unknown model target
-        raise ValueError(f"Unknown model target {model_settings.MODEL_TARGET}")
+        raise ValueError(model_settings.MODEL_TARGET)
 
     return model
