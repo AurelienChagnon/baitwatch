@@ -15,8 +15,8 @@ load_dotenv(PROJECT_PATH / ".env")
 
 class DatasetSettings(BaseSettings):
     """Settings about dataset used for training."""
-    RAW_DATA_PATH: DirectoryPath = PROJECT_PATH / "raw_data"
-    PROCESSED_DATA_PATH: DirectoryPath = PROJECT_PATH / "processed_data"
+    RAW_DATA_PATH: DirectoryPath = PROJECT_PATH / "data" / "raw"
+    PROCESSED_DATA_PATH: DirectoryPath = PROJECT_PATH / "data" / "processed"
     ORIGINAL_SIZE: tuple[int, int] = (1080, 1920)  # Tensorflow: height width
 
 
@@ -32,7 +32,7 @@ class IfspSettings(BaseSettings):
 
 class ModelSettings(BaseSettings):
     """Settings about models."""
-    MODEL_LOCAL_PATH: DirectoryPath = PROJECT_PATH / "model"
+    MODEL_LOCAL_PATH: DirectoryPath = PROJECT_PATH / "models"
     MODEL_TARGET: str = "local"
 
 
