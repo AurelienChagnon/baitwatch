@@ -43,7 +43,7 @@ DETECTION_TYPE_TO_IMG_SIZE = {
 def download_data() -> None:
     """Download data locally."""
     print("⬇️ Downloading data...")
-    dl_data(directory_path=dataset_settings.RAW_DATA_PATH)
+    dl_data(path=dataset_settings.RAW_DATA_PATH)
     print("✅ Data downloaded")
 
 
@@ -52,11 +52,11 @@ def preprocess_data(task_type: FishDetectionEnum) -> None:
     print("🔧 Starting dataset preprocessing...")
     task_type = FishDetectionEnum(task_type)
     imgs_train, imgs_val, imgs_test = get_images(
-        directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME,
+        path=dataset_settings.RAW_DATA_PATH / DATASET_NAME,
         image_size=dataset_settings.ORIGINAL_SIZE,
     )
     labels_train, labels_val, labels_test = get_labels(
-        directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME
+        path=dataset_settings.RAW_DATA_PATH / DATASET_NAME
     )
 
     print("   Preprocessing images...")
