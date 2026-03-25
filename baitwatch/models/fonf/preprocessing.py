@@ -1,7 +1,7 @@
 import numpy as np
 from tensorflow.data import Dataset
 
-from baitwatch.models.commons.preprocessing import preprocess_ds, resize_ds
+from baitwatch.models.preprocessing import preprocess_ds, resize_ds
 from baitwatch.settings import fonf_settings
 
 

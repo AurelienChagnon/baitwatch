@@ -16,8 +16,8 @@ from baitwatch.infra.data import (
 )
 from baitwatch.infra.registry import load_model, save_model
 from baitwatch.models import get_compiled_model, get_preprocess, process_data
-from baitwatch.models.commons.augment import augment_ds
-from baitwatch.models.commons.model import (
+from baitwatch.models.augment import augment_ds
+from baitwatch.models.model import (
     get_class_weights,
     get_classification_report,
     plot_history,
