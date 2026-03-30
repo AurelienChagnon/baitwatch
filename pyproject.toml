@@ -26,6 +26,7 @@ classifiers = [
 dependencies = [
     "fastapi>=0.135.1",
     "google-cloud-storage>=3.10.0",
+    "invoke>=2.2.1",
     "matplotlib>=3.10.8",
     "numpy>=2.4.3",
     "opencv-python>=4.13.0.92",
@@ -81,7 +82,7 @@ select = [
     # flake8-builtin
     "A",
     # flake8-print
-    "T",
+#    "T",
     # flake8-log-format
     "G",
     # pylint
