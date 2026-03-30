@@ -1,5 +1,6 @@
 """Baitwatch — Main Pipeline."""
 
+import argparse
 import numpy as np
 from PIL import ImageFile
 from tensorflow.data import Dataset
@@ -208,3 +209,63 @@ def save_augmented() -> None:
     save_augmented_to_local(x_val, FishDetectionEnum.IFSP.value, 'val')
 
     save_augmented_to_local(x_test, FishDetectionEnum.IFSP.value, 'test')
+
+
+def main():
+    """Main entry point for the baitwatch CLI."""
+    parser = argparse.ArgumentParser(description="Baitwatch - Fish Detection Pipeline")
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Download data command
+    _ = subparsers.add_parser('download-data', help='Download data')
+
+    # Preprocess command
+    preprocess_parser = subparsers.add_parser('preprocess', help='Preprocess data')
+    preprocess_parser.add_argument('dataset', choices=['fonf', 'ifsp'],
+                                   help='Dataset to preprocess')
+
+    # Train command
+    train_parser = subparsers.add_parser('train', help='Train model')
+    train_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to train on')
+    train_parser.add_argument('--augmented', action='store_true',
+                              help='Use augmented data (IFSP only)')
+
+    # Evaluate command
+    evaluate_parser = subparsers.add_parser('evaluate', help='Evaluate model')
+    evaluate_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to evaluate')
+
+    # Classification report command
+    report_parser = subparsers.add_parser('report', help='Generate classification report')
+    report_parser.add_argument('dataset', choices=['fonf', 'ifsp'],
+                               help='Dataset to generate report for')
+    report_parser.add_argument('--model-name', default='', help='Specific model name to use')
+
+    # Run cycle command
+    cycle_parser = subparsers.add_parser('cycle', help='Run complete cycle')
+    cycle_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to run cycle for')
+
+    # Save augmented command
+    _ = subparsers.add_parser('save-augmented', help='Save augmented IFSP dataset')
+    
+    args = parser.parse_args()
+    
+    if args.command == 'download-data':
+        download_data()
+    elif args.command == 'preprocess':
+        preprocess_data(args.dataset)
+    elif args.command == 'train':
+        train(args.dataset, augmented=args.augmented)
+    elif args.command == 'evaluate':
+        evaluate(args.dataset)
+    elif args.command == 'report':
+        classification_report(args.dataset, model_name=args.model_name)
+    elif args.command == 'cycle':
+        run_cycle(args.dataset)
+    elif args.command == 'save-augmented':
+        save_augmented()
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

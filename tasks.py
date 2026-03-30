@@ -1,7 +1,6 @@
 """Baitwatch's tasks for easy use."""
 
-from invoke import task
-import sys
+from invoke import Context, task
 
 
 # ----------------------------------
@@ -9,106 +8,77 @@ import sys
 # ----------------------------------
 
 @task
-def install_requirements(c):
+def install_requirements(context: Context) -> None:
     """Install requirements from requirements.txt."""
-    c.run("pip install -r requirements.txt")
+    context.run("pip install -r requirements.txt")
 
 
 @task
-def install(c):
+def install(context: Context) -> None:
     """Install the package in editable mode."""
-    c.run("pip install -e . -U")
+    context.run("pip install -e . -U")
 
 
 @task
-def reinstall_package(c):
+def reinstall_package(context: Context) -> None:
     """Reinstall the package (uninstall then install)."""
-    c.run("pip uninstall -y baitwatch || :", hide=True)
-    c.run("pip install -e .")
+    context.run("pip uninstall -y baitwatch || :", hide=True)
+    context.run("pip install -e .")
 
+
+# ----------------------------------
+#        CORE TASKS
+# ----------------------------------
 
 @task
-def run_dl_data(c):
+def download_data(context: Context) -> None:
     """Download data for the project."""
-    c.run("python -c 'from baitwatch.main import download_data; download_data()'")
+    context.run("python -m baitwatch.main download-data")
 
 
 @task
-def run_preprocess_fonf(c):
-    """Preprocess FONF data."""
-    c.run("python -c 'from baitwatch.main import preprocess_data; preprocess_data(\"fonf\")'")
+def preprocess(context: Context, dataset: str) -> None:
+    """Preprocess data for specified dataset."""
+    context.run(f"python -m baitwatch.main preprocess {dataset}")
 
 
 @task
-def run_preprocess_ifsp(c):
-    """Preprocess IFSP data."""
-    c.run("python -c 'from baitwatch.main import preprocess_data; preprocess_data(\"ifsp\")'")
+def train(context: Context, dataset: str, augmented: bool = False) -> None:
+    """Train model on specified dataset."""
+    augmented_flag = "--augmented" if augmented else ""
+    context.run(f"python -m baitwatch.main train {dataset} {augmented_flag}")
 
 
 @task
-def run_augment_ifsp(c):
-    """Run data augmentation for IFSP."""
-    c.run("python -c 'from baitwatch.main import save_augmented; save_augmented()'")
+def evaluate(context: Context, dataset: str) -> None:
+    """Evaluate model on specified dataset."""
+    context.run(f"python -m baitwatch.main evaluate {dataset}")
 
 
 @task
-def run_train_fonf(c):
-    """Train model on FONF data."""
-    c.run("python -c 'from baitwatch.main import train; train(\"fonf\")'")
+def report(context: Context, dataset: str, model_name: str = "") -> None:
+    """Generate classification report for specified dataset."""
+    model_flag = f"--model-name {model_name}" if model_name else ""
+    context.run(f"python -m baitwatch.main report {dataset} {model_flag}")
 
 
 @task
-def run_train_ifsp(c):
-    """Train model on IFSP data."""
-    c.run("python -c 'from baitwatch.main import train; train(\"ifsp\")'")
+def cycle(context: Context, dataset: str) -> None:
+    """Run complete cycle for specified dataset."""
+    context.run(f"python -m baitwatch.main cycle {dataset}")
 
 
 @task
-def run_train_ifsp_augmented(c):
-    """Train model on IFSP augmented data."""
-    c.run("python -c 'from baitwatch.main import train; train(\"ifsp\", augmented=True)'")
+def save_augmented(context: Context) -> None:
+    """Save augmented IFSP dataset."""
+    context.run("python -m baitwatch.main save-augmented")
 
 
 @task
-def run_evaluate_fonf(c):
-    """Evaluate model on FONF data."""
-    c.run("python -c 'from baitwatch.main import evaluate; evaluate(\"fonf\")'")
-
-
-@task
-def run_evaluate_ifsp(c):
-    """Evaluate model on IFSP data."""
-    c.run("python -c 'from baitwatch.main import evaluate; evaluate(\"ifsp\")'")
-
-
-@task
-def run_cycle_fonf(c):
-    """Run complete cycle for FONF data."""
-    c.run("python -c 'from baitwatch.main import run_cycle; run_cycle(\"fonf\")'")
-
-
-@task
-def run_cycle_ifsp(c):
-    """Run complete cycle for IFSP data."""
-    c.run("python -c 'from baitwatch.main import run_cycle; run_cycle(\"ifsp\")'")
-
-
-@task
-def run_report_fonf(c):
-    """Generate classification report for FONF data."""
-    c.run("python -c 'from baitwatch.main import classification_report; classification_report(\"fonf\")'")
-
-
-@task
-def run_report_ifsp(c):
-    """Generate classification report for IFSP data."""
-    c.run("python -c 'from baitwatch.main import classification_report; classification_report(\"ifsp\")'")
-
-
-@task
-def run_api(c):
-    """Run the FastAPI server with uvicorn."""
-    c.run("uvicorn baitwatch.interfaces.api:app --reload")
+def api(context: Context, host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> None:
+    """Run the FastAPI server."""
+    reload_flag = "--reload" if reload else ""
+    context.run(f"python -m baitwatch.interfaces.api --host {host} --port {port} {reload_flag}")
 
 
 # ----------------------------------
@@ -116,66 +86,27 @@ def run_api(c):
 # ----------------------------------
 
 @task
-def setup(c):
+def setup(context: Context) -> None:
     """Complete setup: install requirements and package."""
-    install_requirements(c)
-    install(c)
+    install_requirements(context)
+    install(context)
 
 
 @task
-def preprocess(c, dataset="all"):
-    """Preprocess data for specified dataset or all datasets."""
-    if dataset == "all" or dataset == "fonf":
-        run_preprocess_fonf(c)
-    if dataset == "all" or dataset == "ifsp":
-        run_preprocess_ifsp(c)
-
-
-@task
-def train(c, dataset="all", augmented=False):
-    """Train model on specified dataset(s)."""
-    if dataset == "all" or dataset == "fonf":
-        run_train_fonf(c)
-    if dataset == "all" or dataset == "ifsp":
-        if augmented:
-            run_train_ifsp_augmented(c)
-        else:
-            run_train_ifsp(c)
-
-
-@task
-def evaluate(c, dataset="all"):
-    """Evaluate model on specified dataset(s)."""
-    if dataset == "all" or dataset == "fonf":
-        run_evaluate_fonf(c)
-    if dataset == "all" or dataset == "ifsp":
-        run_evaluate_ifsp(c)
-
-
-@task
-def cycle(c, dataset="all"):
-    """Run complete cycle for specified dataset(s)."""
-    if dataset == "all" or dataset == "fonf":
-        run_cycle_fonf(c)
-    if dataset == "all" or dataset == "ifsp":
-        run_cycle_ifsp(c)
-
-
-@task
-def report(c, dataset="all"):
-    """Generate classification report for specified dataset(s)."""
-    if dataset == "all" or dataset == "fonf":
-        run_report_fonf(c)
-    if dataset == "all" or dataset == "ifsp":
-        run_report_ifsp(c)
-
-
-@task
-def full_pipeline(c, dataset="all"):
+def full_pipeline(context: Context, dataset: str) -> None:
     """Run complete pipeline: preprocess -> train -> evaluate -> report."""
-    preprocess(c, dataset)
-    train(c, dataset)
-    evaluate(c, dataset)
-    report(c, dataset)
+    preprocess(context, dataset)
+    train(context, dataset)
+    evaluate(context, dataset)
+    report(context, dataset)
+
+
+@task
+def full_pipeline_augmented(context: Context, dataset: str) -> None:
+    """Run complete pipeline with augmentation: preprocess -> train(augmented) -> evaluate -> report."""
+    preprocess(context, dataset)
+    train(context, dataset, augmented=True)
+    evaluate(context, dataset)
+    report(context, dataset)
 
 
