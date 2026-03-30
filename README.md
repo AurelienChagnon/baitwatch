@@ -315,6 +315,19 @@ python -m baitwatch.main save-augmented
 python -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
 ```
 
+Or if you are using `uv`
+
+```bash
+uv run -m baitwatch.main download-data
+uv run -m baitwatch.main preprocess fonf
+uv run -m baitwatch.main train ifsp --augmented
+uv run -m baitwatch.main evaluate fonf
+uv run -m baitwatch.main report ifsp
+uv run -m baitwatch.main cycle fonf
+uv run -m baitwatch.main save-augmented
+uv run -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
+```
+
 ### API — `POST /detect-fishes/`
 
 Both models are served through a single endpoint. The `detection_type` parameter selects which model to run.
