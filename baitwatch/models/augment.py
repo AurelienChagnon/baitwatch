@@ -1,7 +1,10 @@
+"""Module for augmenting image dataset."""
+
+
 import tensorflow as tf
 
 
-def flip_left_right(image):
+def flip_left_right(image: tf.Tensor) -> tf.Tensor:
     """Flips the image horizontally (left to right).
 
     Args:
@@ -14,7 +17,7 @@ def flip_left_right(image):
     return img
 
 
-def flip_up_down(image):
+def flip_up_down(image: tf.Tensor) -> tf.Tensor:
     """Flips the image vertically (up to down).
 
     Args:
@@ -27,7 +30,7 @@ def flip_up_down(image):
     return img
 
 
-def rotate_180(image):
+def rotate_180(image: tf.Tensor) -> tf.Tensor:
     """Rotates the image by 180 degrees.
 
     Args:
@@ -53,7 +56,7 @@ def add_noise(image: tf.Tensor) -> tf.Tensor:
     return tf.clip_by_value(tf.cast(image, tf.float32) + noise, 0, 255)
 
 
-def augment_images(img, label):
+def augment_images(img: tf.Tensor, label: tf.Tensor) -> tf.data.Dataset:
     """Data augmentation pipeline generating 8 variations from a single input.
 
     Applies geometric transformations (flips, rotations) and photometric
@@ -63,8 +66,6 @@ def augment_images(img, label):
     Args:
         img (tf.Tensor): The source image tensor (typically uint8).
         label (tf.Tensor): The associated label tensor (e.g., YOLO bounding box or class).
-        model_type (str): The model identifier for directory naming (e.g., 'fonf').
-        split_name (str): The dataset split being processed (e.g., 'train', 'val').
 
     Returns:
         tf.data.Dataset: A sliced dataset containing the 8 augmented (image, label) pairs.
@@ -91,6 +92,13 @@ def augment_images(img, label):
 
 
 def augment_ds(dataset: tf.data.Dataset) -> tf.data.Dataset:
-    """Augments the dataset by applying geometric transformations."""
-    dataset_aug = dataset.flat_map(lambda x, y: augment_images(x, y))
+    """Augments the dataset by applying geometric transformations.
+
+    Args:
+        dataset (tf.data.Dataset): The input dataset.
+
+    Returns:
+        tf.data.Dataset: The augmented dataset.
+    """
+    dataset_aug = dataset.flat_map(augment_images)
     return dataset_aug
