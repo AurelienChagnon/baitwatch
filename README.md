@@ -117,18 +117,11 @@ cd baitwatch
 
 ### 2. Create and activate the environment
 
-Using **uv** (recommended):
+Using **uv**:
 
 ```bash
 uv sync --dev
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-```
-
-Using **Conda** (recommended):
-
-```bash
-conda env create -f environment.yml
-conda activate baitwatch
 ```
 
 ### 3. Install in editable mode
