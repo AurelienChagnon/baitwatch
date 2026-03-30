@@ -18,13 +18,13 @@ A stretch objective explores **transfer learning with YOLO26** for end-to-end fi
 
 ## 👥 Contributors
 
-| Name             | GitHub                                                 |
-|------------------|--------------------------------------------------------|
-| LeGregs          | [@LeGregs](https://github.com/LeGregs)                 |
-| Aurelien Chagnon | [@Aurelien-Chagnon](https://github.com/AurelienChagnon) |
-| Martin Piemont     | [@Martin-Piemont](https://github.com/Martsk23)         |
-| Maximilien Heremans       | [@Maximilien-Heremans](https://github.com/MaxH16)      |
-| MHR-cloud      | [@MHR-cloud](https://github.com/MHR-cloud)             |
+| Name                | GitHub                                                  |
+|---------------------|---------------------------------------------------------|
+| LeGregs             | [@LeGregs](https://github.com/LeGregs)                  |
+| Aurelien Chagnon    | [@Aurelien-Chagnon](https://github.com/AurelienChagnon) |
+| Martin Piemont      | [@Martin-Piemont](https://github.com/Martsk23)          |
+| Maximilien Heremans | [@Maximilien-Heremans](https://github.com/MaxH16)       |
+| MHR-cloud           | [@MHR-cloud](https://github.com/MHR-cloud)              |
 
 ---
 
@@ -36,7 +36,6 @@ A stretch objective explores **transfer learning with YOLO26** for end-to-end fi
 - [Installation](#-installation)
 - [Pipeline Overview](#-pipeline-overview)
 - [Usage](#-usage)
-- [API](#api----detect-fishes)
 - [Model Architectures](#-model-architectures)
 - [Handling Class Imbalance](#-handling-class-imbalance)
 - [Results](#-results)
@@ -66,31 +65,31 @@ The project treats each task as a **separate, independently used CNN**, trained 
 
 The Tassie BRUV dataset contains annotated underwater images collected using stereo BRUV rigs deployed off the coast of Tasmania, Australia. It is designed explicitly to benchmark computer vision algorithms under ecologically realistic conditions: variable water clarity, complex reef backgrounds, partial occlusions, and significant class imbalance due to the natural rarity of certain species.
 
-| Property | Details |
-|---|---|
-| Media type | Still frames extracted from MP4 BRUV video sequences |
-| Annotation format | Bounding boxes + species labels (YOLO format — per-image `.txt` files) |
-| Total annotations | 5,222 fish bounding boxes across 1,912 labelled frames |
-| Raw species | 19 fish species identified at species level |
-| Grouped classes | 8 classes (rare species merged into higher-order taxonomic groups) |
-| Key challenge | Severe class imbalance — *Platycephalus bassensis* alone accounts for 3,834 of 5,222 annotations |
-| Environment | Temperate reef habitat, Tasmania, Australia |
-| Training / Val / Test split | 1,340 / 192 / 380 frames |
+| Property                    | Details                                                                                          |
+|-----------------------------|--------------------------------------------------------------------------------------------------|
+| Media type                  | Still frames extracted from MP4 BRUV video sequences                                             |
+| Annotation format           | Bounding boxes + species labels (YOLO format — per-image `.txt` files)                           |
+| Total annotations           | 5,222 fish bounding boxes across 1,912 labelled frames                                           |
+| Raw species                 | 19 fish species identified at species level                                                      |
+| Grouped classes             | 8 classes (rare species merged into higher-order taxonomic groups)                               |
+| Key challenge               | Severe class imbalance — *Platycephalus bassensis* alone accounts for 3,834 of 5,222 annotations |
+| Environment                 | Temperate reef habitat, Tasmania, Australia                                                      |
+| Training / Val / Test split | 1,340 / 192 / 380 frames                                                                         |
 
 ### Species Classes
 
 The 19 raw species observed in the dataset are grouped into **8 classification classes** used for model training, after merging taxa with low annotation counts into morphologically similar higher-order groups. The dominant class by a large margin is the **Southern Sand Flathead** (*Platycephalus bassensis*), a camouflaged benthic species that accounts for ~73% of all annotations.
 
-| Class ID | Class Name | Common Name | Approx. Annotations (train split) | Notes |
-|---|---|---|-----------------------------------|-------|
-| 0 | `Carcharhiniformes` | Ground sharks | 168                               | —     |
-| 1 | `Chyrosophyrs auratus` | Australasian Snapper | 210                               | —     |
-| 2 | `Moridae` | Morid cods | 67                                | —     |
-| 3 | `Perciformes_sandy` | Sandy-habitat perch-like fishes | 87                                | —     |
-| 4 | `Perciformes_silver` | Silver perch-like fishes | 292                               | —     |
-| 5 | `Ray` | Rays | 93                                | —     |
-| 6 | `Scorpaeniformes` | Scorpionfish & flatheads | 2660                              | —     |
-| 7 | `Tetradontiformes` | Pufferfish & filefish | 70                                | —     |
+| Class ID | Class Name             | Common Name                     | Approx. Annotations (train split) | Notes |
+|----------|------------------------|---------------------------------|-----------------------------------|-------|
+| 0        | `Carcharhiniformes`    | Ground sharks                   | 168                               | —     |
+| 1        | `Chyrosophyrs auratus` | Australasian Snapper            | 210                               | —     |
+| 2        | `Moridae`              | Morid cods                      | 67                                | —     |
+| 3        | `Perciformes_sandy`    | Sandy-habitat perch-like fishes | 87                                | —     |
+| 4        | `Perciformes_silver`   | Silver perch-like fishes        | 292                               | —     |
+| 5        | `Ray`                  | Rays                            | 93                                | —     |
+| 6        | `Scorpaeniformes`      | Scorpionfish & flatheads        | 2660                              | —     |
+| 7        | `Tetradontiformes`     | Pufferfish & filefish           | 70                                | —     |
 
 > **Note:** Class names and IDs match those defined in `training_data_species_grouped/data.yaml`. Refer to the paper *"The Motion Picture"* (Maslen et al., 2025) for the full grouping rationale.
 
@@ -103,9 +102,9 @@ The 19 raw species observed in the dataset are grouped into **8 classification c
 ### Prerequisites
 
 - Python 3.11+
-- Uv project manager ([official install guide](https://docs.astral.sh/uv/getting-started/installation/))
+- Uv project manager ([official installation guide](https://docs.astral.sh/uv/getting-started/installation/))
 - CUDA-capable GPU recommended (≥ 6 GB VRAM)
-- TensorFlow 2.x with GPU support ([official install guide](https://www.tensorflow.org/install))
+- TensorFlow 2.x with GPU support ([official installation guide](https://www.tensorflow.org/install))
 - FastAPI + Uvicorn (`pip install fastapi uvicorn`)
 
 ### 1. Clone the repository
@@ -151,16 +150,16 @@ FONF and IFSP are trained and served **independently**, but share a common prepr
 
 ```mermaid
 flowchart TD
-    A([🎬 Raw BRUV Images\n+ YOLO Annotations])
+    A([ Raw BRUV Images\n+ YOLO Annotations])
 
-    A --> B[1. Data Preparation\nParse YOLO labels → binary & species label files\nStratified train / val / test splits]
+    A --> B[1. Data Preparation\nParse YOLO labels -> binary & species label files\nStratified train / val / test splits]
 
-    B --> C[2. Preprocessing — saved to disk\nAuto white balance\nContrast stretching\nFONF: resize to 256×144\nIFSP: crop on bounding box → resize + black padding to 256×105\nImage enhancement for IFSP minority classes]
+    B --> C[2. Preprocessing - saved to disk\nAuto white balance\nContrast stretching\nFONF: resize to 256x144\nIFSP: crop on bounding box -> resize + black padding to 256x105\nImage enhancement for IFSP minority classes]
 
     C --> D[(processed_data/)]
 
-    D --> E[3. FONF Training\nBinary CNN — 256×144\nfish / no fish]
-    D --> F[3. IFSP Training\nMulti-class CNN — 256×105\n8 species classes]
+    D --> E[3. FONF Training\nBinary CNN - 256x144\nfish / no fish]
+    D --> F[3. IFSP Training\nMulti-class CNN - 256x105\n8 species classes]
 
     E --> G[(model/fonf/)]
     F --> H[(model/ifsp/)]
@@ -186,10 +185,10 @@ All images go through a shared base pipeline before model-specific resizing, imp
 2. **Contrast stretching** — linearly rescales pixel intensities to the full [0, 255] range, compensating for low-contrast scenes caused by light attenuation underwater.
 3. **Resize** — images are resized to the resolution expected by each model, with different strategies per model:
 
-| Model | Resize strategy | Resolution |
-|---|---|---|
-| FONF | Direct resize | 256 × 144 px |
-| IFSP | Crop on bounding box → resize → black padding (preserves fish aspect ratio) | 256 × 105 px |
+| Model | Resize strategy                                                             | Resolution   |
+|-------|-----------------------------------------------------------------------------|--------------|
+| FONF  | Direct resize                                                               | 256 × 144 px |
+| IFSP  | Crop on bounding box → resize → black padding (preserves fish aspect ratio) | 256 × 105 px |
 
 ### Image Enhancement for IFSP (Class Imbalance)
 
@@ -291,10 +290,10 @@ The API will be available at `http://localhost:8000`. Interactive documentation 
 
 Both models are served through a single endpoint. The `detection_type` parameter selects which model to run.
 
-| Parameter | Type | Values | Description |
-|---|---|---|---|
-| `detection_type` | `string` | `"fonf"` \| `"ifsp"` | Model to use for inference |
-| `file` | `image file` | `.jpg`, `.png` | Underwater image to analyse |
+| Parameter        | Type         | Values               | Description                 |
+|------------------|--------------|----------------------|-----------------------------|
+| `detection_type` | `string`     | `"fonf"` \| `"ifsp"` | Model to use for inference  |
+| `file`           | `image file` | `.jpg`, `.png`       | Underwater image to analyse |
 
 **Example — FONF (fish / no fish):**
 
@@ -435,13 +434,13 @@ Class weights are computed automatically from inverse class frequencies at train
 
 The following metrics are tracked for each model:
 
-| Metric | Task | Notes |
-|---|---|---|
-| Accuracy | Both | Overall; insufficient alone under class imbalance |
-| F1 Score (macro) | Both | Treats all classes equally — key metric for rare species |
+| Metric           | Task | Notes                                                           |
+|------------------|------|-----------------------------------------------------------------|
+| Accuracy         | Both | Overall; insufficient alone under class imbalance               |
+| F1 Score (macro) | Both | Treats all classes equally — key metric for rare species        |
 | Per-class Recall | IFSP | Species-level sensitivity; critical for biodiversity monitoring |
-| Confusion Matrix | Both | Displayed via `make run_report_*` |
-| ROC-AUC | FONF | Binary classification quality across all thresholds |
+| Confusion Matrix | Both | Displayed via `make run_report_*`                               |
+| ROC-AUC          | FONF | Binary classification quality across all thresholds             |
 
 Metrics computed on the **validation set** unless noted. Confusion matrices available via `make run_report_fonf` / `make run_report_ifsp`.
 
@@ -453,19 +452,19 @@ To contextualise model performance, each CNN is compared against a naive baselin
 
 Always predicts the most frequent class in the training set (fish or no fish, whichever is more common). Any FONF model must exceed this accuracy and, critically, achieve substantially higher recall on the minority class.
 
-| Model | Accuracy | F1 (macro) | ROC-AUC |
-|---|---|---|---|
-| Majority class baseline | ~56% | — | 0.50 |
-| FONF (custom CNN) | **0.89** | **0.89** | **0.92** *(test)* |
+| Model                   | Accuracy | F1 (macro) | ROC-AUC           |
+|-------------------------|----------|------------|-------------------|
+| Majority class baseline | ~56%     | —          | 0.50              |
+| FONF (custom CNN)       | **0.89** | **0.89**   | **0.92** *(test)* |
 
 **Per-class results on the validation set (192 samples):**
 
-| Class | Precision | Recall | F1 | Support |
-|---|---|---|---|---|
-| No fish | 0.89 | 0.86 | 0.87 | 84 |
-| Fish | 0.89 | 0.92 | 0.90 | 108 |
-| **Macro avg** | **0.89** | **0.89** | **0.89** | 192 |
-| Weighted avg | 0.89 | 0.89 | 0.89 | 192 |
+| Class         | Precision | Recall   | F1       | Support |
+|---------------|-----------|----------|----------|---------|
+| No fish       | 0.89      | 0.86     | 0.87     | 84      |
+| Fish          | 0.89      | 0.92     | 0.90     | 108     |
+| **Macro avg** | **0.89**  | **0.89** | **0.89** | 192     |
+| Weighted avg  | 0.89      | 0.89     | 0.89     | 192     |
 
 ### IFSP — Individual Fish Species Prediction
 
@@ -473,27 +472,27 @@ Always predicts the most frequent class in the training set (fish or no fish, wh
 
 Predicts each of the 8 species classes with equal probability (1/8 = 12.5% per class). Given the severe imbalance in the dataset, a model that simply predicts *Scorpaeniformes* every time would score high accuracy but near-zero macro F1 — this stratified random baseline avoids that trap.
 
-| Model | Accuracy | F1 (macro) | Rare Species Recall |
-|---|---|---|---|
-| Uniform random baseline | ~12.5% | ~12.5% | ~12.5% |
-| Majority class baseline | ~73% | — | ~0% |
-| IFSP (custom CNN) | **0.71** | **0.59** | **0.40–0.81** |
+| Model                   | Accuracy | F1 (macro) | Rare Species Recall |
+|-------------------------|----------|------------|---------------------|
+| Uniform random baseline | ~12.5%   | ~12.5%     | ~12.5%              |
+| Majority class baseline | ~73%     | —          | ~0%                 |
+| IFSP (custom CNN)       | **0.71** | **0.59**   | **0.40–0.81**       |
 
 **Per-class results on the validation set (479 samples):**
 
-| Class | Name | Precision | Recall | F1 | Support |
-|---|---|---|---|---|---|
-| 0 | Carcharhiniformes | 0.54 | 0.71 | 0.61 | 21 |
-| 1 | Chyrosophyrs auratus | 0.84 | 0.81 | 0.82 | 26 |
-| 2 | Moridae | 0.67 | 0.40 | 0.50 | 15 |
-| 3 | Perciformes_sandy | 0.30 | 0.60 | 0.40 | 10 |
-| 4 | Perciformes_silver | 0.56 | 0.73 | 0.64 | 56 |
-| 5 | Ray | 0.50 | 0.40 | 0.44 | 5 |
-| 6 | Scorpaeniformes | 0.94 | 0.74 | 0.83 | 336 |
-| 7 | Tetradontiformes | 0.57 | 0.40 | 0.47 | 10 |
-| — | **Macro avg** | **0.61** | **0.60** | **0.59** | 479 |
-| — | Micro avg | 0.80 | 0.71 | 0.75 | 479 |
-| — | Weighted avg | 0.84 | 0.71 | 0.76 | 479 |
+| Class | Name                 | Precision | Recall   | F1       | Support |
+|-------|----------------------|-----------|----------|----------|---------|
+| 0     | Carcharhiniformes    | 0.54      | 0.71     | 0.61     | 21      |
+| 1     | Chyrosophyrs auratus | 0.84      | 0.81     | 0.82     | 26      |
+| 2     | Moridae              | 0.67      | 0.40     | 0.50     | 15      |
+| 3     | Perciformes_sandy    | 0.30      | 0.60     | 0.40     | 10      |
+| 4     | Perciformes_silver   | 0.56      | 0.73     | 0.64     | 56      |
+| 5     | Ray                  | 0.50      | 0.40     | 0.44     | 5       |
+| 6     | Scorpaeniformes      | 0.94      | 0.74     | 0.83     | 336     |
+| 7     | Tetradontiformes     | 0.57      | 0.40     | 0.47     | 10      |
+| —     | **Macro avg**        | **0.61**  | **0.60** | **0.59** | 479     |
+| —     | Micro avg            | 0.80      | 0.71     | 0.75     | 479     |
+| —     | Weighted avg         | 0.84      | 0.71     | 0.76     | 479     |
 
 ---
 
@@ -532,31 +531,31 @@ Key fine-tuning strategies applied:
 
 ### Comparison: Custom CNN pipeline vs. YOLO26
 
-| Aspect | FONF + IFSP (from scratch) | YOLO26 (fine-tuned) |
-|---|---|---|
-| Pre-trained weights | None | COCO (120K images) |
-| Task | Classification only | Detection + classification |
-| Localisation | No (image-level labels) | Yes (bounding boxes) |
-| Training data needed | High | Low–medium |
-| Rare species performance | Baseline | Expected improvement |
-| Inference speed | Fast | Fast |
-| Interpretability | Confusion matrix + per-class metrics | Built-in confidence scores |
+| Aspect                   | FONF + IFSP (from scratch)           | YOLO26 (fine-tuned)        |
+|--------------------------|--------------------------------------|----------------------------|
+| Pre-trained weights      | None                                 | COCO (120K images)         |
+| Task                     | Classification only                  | Detection + classification |
+| Localisation             | No (image-level labels)              | Yes (bounding boxes)       |
+| Training data needed     | High                                 | Low–medium                 |
+| Rare species performance | Baseline                             | Expected improvement       |
+| Inference speed          | Fast                                 | Fast                       |
+| Interpretability         | Confusion matrix + per-class metrics | Built-in confidence scores |
 
 ### Results — YOLO26 Fine-tuned
 
 Model: `YOLO26n` (fused) — 122 layers, 2,376,396 parameters, 5.2 GFLOPs. Inference speed: 38.6ms/image (CPU).
  
-| Class | Images | Instances | P | R | mAP@0.5 | mAP@0.5:0.95 |
-|---|---|---|---|---|---|---|
-| **All** | **1148** | **2834** | **0.696** | **0.584** | **0.629** | **0.397** |
-| Carcharhiniformes | 126 | 126 | 0.712 | 0.714 | 0.722 | 0.395 |
-| Chyrosophyrs auratus | 146 | 152 | 0.833 | 0.888 | 0.901 | 0.663 |
-| Moridae | 72 | 90 | 0.746 | 0.457 | 0.520 | 0.306 |
-| Perciformes_sandy | 58 | 58 | 0.430 | 0.310 | 0.346 | 0.167 |
-| Perciformes_silver | 150 | 336 | 0.627 | 0.595 | 0.614 | 0.333 |
-| Ray | 30 | 30 | 0.626 | 0.567 | 0.622 | 0.454 |
-| Scorpaeniformes | 446 | 1983 | 0.760 | 0.558 | 0.637 | 0.388 |
-| Tetradontiformes | 59 | 59 | 0.831 | 0.585 | 0.672 | 0.469 |
+| Class                | Images   | Instances | P         | R         | mAP@0.5   | mAP@0.5:0.95 |
+|----------------------|----------|-----------|-----------|-----------|-----------|--------------|
+| **All**              | **1148** | **2834**  | **0.696** | **0.584** | **0.629** | **0.397**    |
+| Carcharhiniformes    | 126      | 126       | 0.712     | 0.714     | 0.722     | 0.395        |
+| Chyrosophyrs auratus | 146      | 152       | 0.833     | 0.888     | 0.901     | 0.663        |
+| Moridae              | 72       | 90        | 0.746     | 0.457     | 0.520     | 0.306        |
+| Perciformes_sandy    | 58       | 58        | 0.430     | 0.310     | 0.346     | 0.167        |
+| Perciformes_silver   | 150      | 336       | 0.627     | 0.595     | 0.614     | 0.333        |
+| Ray                  | 30       | 30        | 0.626     | 0.567     | 0.622     | 0.454        |
+| Scorpaeniformes      | 446      | 1983      | 0.760     | 0.558     | 0.637     | 0.388        |
+| Tetradontiformes     | 59       | 59        | 0.831     | 0.585     | 0.672     | 0.469        |
 ---
 
 ## 🔬 Stretch Objective: Grad-CAM Visualisation *(not met)*
@@ -595,7 +594,7 @@ The goal was to integrate **Grad-CAM** (Gradient-weighted Class Activation Mappi
 
 3. Jocher, G. et al. (2026). **Ultralytics YOLO26**. https://github.com/ultralytics/ultralytics
 
-5. Chollet, F. et al. **Keras**. https://keras.io
+4. Chollet, F. et al. **Keras**. https://keras.io
 
 ---
 
