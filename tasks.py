@@ -108,5 +108,3 @@ def full_pipeline_augmented(context: Context, dataset: str) -> None:
     train(context, dataset, augmented=True)
     evaluate(context, dataset)
     report(context, dataset)
-
-
