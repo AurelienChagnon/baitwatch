@@ -82,7 +82,7 @@ async def ping() -> list[str]:
     return ["pong"]
 
 
-def main():
+def main() -> None:
     """Main entry point for the API server."""
     parser = argparse.ArgumentParser(description="Baitwatch API Server")
     parser.add_argument('--host', default='127.0.0.1', help='Host to bind to')

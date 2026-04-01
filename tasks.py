@@ -103,7 +103,10 @@ def full_pipeline(context: Context, dataset: str) -> None:
 
 @task
 def full_pipeline_augmented(context: Context, dataset: str) -> None:
-    """Run complete pipeline with augmentation: preprocess -> train(augmented) -> evaluate -> report."""
+    """Run complete pipeline with augmentation.
+
+    Image processing -> train(augmented) -> evaluate -> report
+    """
     preprocess(context, dataset)
     train(context, dataset, augmented=True)
     evaluate(context, dataset)

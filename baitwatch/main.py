@@ -212,7 +212,7 @@ def save_augmented() -> None:
     save_augmented_to_local(x_test, FishDetectionEnum.IFSP.value, 'test')
 
 
-def main():
+def main() -> None:
     """Main entry point for the baitwatch CLI."""
     parser = argparse.ArgumentParser(description="Baitwatch - Fish Detection Pipeline")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
