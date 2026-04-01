@@ -1,6 +1,7 @@
 """Baitwatch — Main Pipeline."""
 
 import argparse
+
 import numpy as np
 from PIL import ImageFile
 from tensorflow.data import Dataset
@@ -16,8 +17,8 @@ from baitwatch.infra.data import (
     save_image_dataset,
 )
 from baitwatch.infra.registry import load_model, save_model
-from baitwatch.models.model_selector import get_compiled_model, get_preprocess, make_training_data
 from baitwatch.models.augment import augment_ds
+from baitwatch.models.model_selector import get_compiled_model, get_preprocess, make_training_data
 from baitwatch.models.training import (
     get_class_weights,
     get_classification_report,
@@ -246,9 +247,9 @@ def main():
 
     # Save augmented command
     _ = subparsers.add_parser('save-augmented', help='Save augmented IFSP dataset')
-    
+
     args = parser.parse_args()
-    
+
     if args.command == 'download-data':
         download_data()
     elif args.command == 'preprocess':

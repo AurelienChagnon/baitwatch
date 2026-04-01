@@ -4,9 +4,9 @@ import io
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI, UploadFile
 from PIL import Image
-import uvicorn
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
 from baitwatch.domains.prediction_result import PredictionResult
@@ -89,9 +89,9 @@ def main():
     parser.add_argument('--port', type=int, default=8000, help='Port to bind to')
     parser.add_argument('--reload', action='store_true', help='Enable auto-reload')
     parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
-    
+
     args = parser.parse_args()
-    
+
     uvicorn.run(
         "baitwatch.interfaces.api:app",
         host=args.host,
