@@ -1,4 +1,4 @@
-"""Baitwatch — Model Utils."""
+"""Baitwatch — Model Training Utils."""
 
 from collections import Counter
 
