@@ -18,7 +18,7 @@ def train_model(model: keras.Model,  # noqa: PLR0913
                 epochs: int = 50,
                 patience: int = 5,
                 class_weights: dict | None = None,
-                ) -> tuple[dict, keras.Model]:
+                ) -> tuple[keras.callbacks.History, keras.Model]:
     """Trains the model and returns the training history and the trained model.
 
     Usage:
