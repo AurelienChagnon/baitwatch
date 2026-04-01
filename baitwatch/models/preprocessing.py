@@ -1,11 +1,4 @@
-"""
-Baitwatch — Preprocessing
-white_balance : correction auto de la balance des blancs
-contrast_enhance : amélioration auto du contraste
-flip/rot/noise : augmentation des images avec adaptation des labels
-preprocess : pipeline complète de preprocessing (white balance → contraste → resize)
-augment_preprocess : multiplie le dataset x8 avec augmentations
-"""
+"""Baitwatch — Preprocessing pipelines."""
 
 import cv2 as cv
 import numpy as np
@@ -28,8 +21,8 @@ def white_balance(img: np.ndarray) -> np.ndarray:
     # White balance by averaging colors instead of gray method
     avg_a = np.average(result[:, :, 1])
     avg_b = np.average(result[:, :, 2])
-    result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
-    result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
+    result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)  # noqa: PLR6104
+    result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)  # noqa: PLR6104
     # Don't forget to convert back to RGB
     result = cv.cvtColor(result, cv.COLOR_LAB2RGB)
     return result
@@ -63,16 +56,20 @@ def contrast_enhance(img: np.ndarray) -> np.ndarray:
 
 
 def preprocess_ds(dataset: tf.data.Dataset) -> tf.data.Dataset:
+    """Preprocess pipeline on image dataset.
+
+    Args:
+        dataset (tf.data.Dataset): Dataset of images
+
+    Returns:
+        tf.data.Dataset: Dataset of processed images
+    """
     # To be applied to a tf.data.Dataset using 'map',
     # see https://www.tensorflow.org/api_docs/python/tf/py_function
     @tf.py_function(Tout=tf.uint8)  # 8bit image
-    def preprocess(eager_tensor) -> np.ndarray:
-        """Full preprocessing pipeline for an image.
-
-        Expected to be mapped to a ft.data.Dataset of EagerTensor.
-        """
+    def preprocess(image: tf.Tensor) -> np.ndarray:
         # DO NOT MODIFY: Cast eager tensor into an OpenCV readable raw image
-        img = eager_tensor.numpy().astype("uint8")
+        img = image.numpy().astype("uint8")
 
         # White balance first to avoid degradation from previous processing
         white_balanced_img = white_balance(img)
@@ -87,8 +84,17 @@ def resize_ds(
         dataset: tf.data.Dataset,
         img_size: tuple[int, int],
 ) -> tf.data.Dataset:
+    """Resize images in dataset.
+
+    Args:
+        dataset (tf.data.Dataset): Dataset of images
+        img_size (tuple[int, int]): Tuple of (height, width) to resize images to
+
+    Returns:
+        tf.data.Dataset: Dataset of resized images
+    """
     @tf.py_function(Tout=tf.uint8)  # 8bit image
-    def resize(processed_img):
+    def resize(processed_img: tf.Tensor) -> np.ndarray:
         processed_img = processed_img.numpy().astype("uint8")
         # Resize last in case it modifies too much for previous process
         resized_img = cv.resize(processed_img,

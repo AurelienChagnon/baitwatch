@@ -44,7 +44,7 @@ USER nonroot
 WORKDIR /app
 
 # Create needed directories
-RUN mkdir model; mkdir raw_data; mkdir processed_data
+RUN mkdir models; mkdir -p data/raw; mkdir -p data/processed
 
 # Run the FastAPI application by default
-CMD ["uvicorn", "baitwatch.interfaces.api:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python", "-m", "baitwatch.interfaces.api", "--host", "0.0.0.0", "--port", "8080"]

@@ -1,6 +1,10 @@
+"""Module for augmenting image dataset."""
+
+
 import tensorflow as tf
 
-def flip_left_right(image):
+
+def flip_left_right(image: tf.Tensor) -> tf.Tensor:
     """Flips the image horizontally (left to right).
 
     Args:
@@ -13,7 +17,7 @@ def flip_left_right(image):
     return img
 
 
-def flip_up_down(image):
+def flip_up_down(image: tf.Tensor) -> tf.Tensor:
     """Flips the image vertically (up to down).
 
     Args:
@@ -26,7 +30,7 @@ def flip_up_down(image):
     return img
 
 
-def rotate_180(image):
+def rotate_180(image: tf.Tensor) -> tf.Tensor:
     """Rotates the image by 180 degrees.
 
     Args:
@@ -52,7 +56,7 @@ def add_noise(image: tf.Tensor) -> tf.Tensor:
     return tf.clip_by_value(tf.cast(image, tf.float32) + noise, 0, 255)
 
 
-def augment_images(img, label):
+def augment_images(img: tf.Tensor, label: tf.Tensor) -> tf.data.Dataset:
     """Data augmentation pipeline generating 8 variations from a single input.
 
     Applies geometric transformations (flips, rotations) and photometric
@@ -62,25 +66,23 @@ def augment_images(img, label):
     Args:
         img (tf.Tensor): The source image tensor (typically uint8).
         label (tf.Tensor): The associated label tensor (e.g., YOLO bounding box or class).
-        model_type (str): The model identifier for directory naming (e.g., 'fonf').
-        split_name (str): The dataset split being processed (e.g., 'train', 'val').
 
     Returns:
         tf.data.Dataset: A sliced dataset containing the 8 augmented (image, label) pairs.
     """
-    img_lr= flip_left_right(img)
-    img_ud= flip_up_down(img)
+    img_lr = flip_left_right(img)
+    img_ud = flip_up_down(img)
     img_180 = rotate_180(img)
 
-    # Force le cast en uint8 pour chaque transformation photométrique
+    # Force cast to uint8 for each photometric transformation
     img_br = tf.cast(tf.image.random_brightness(img, max_delta=0.8), tf.uint8)
     img_ct = tf.cast(tf.image.random_contrast(img, lower=0.2, upper=2.5), tf.uint8)
     img_st = tf.cast(tf.image.random_saturation(img, lower=0.0, upper=6.0), tf.uint8)
     img_ns = tf.cast(add_noise(img), tf.uint8)
-    img = tf.cast(img , tf.uint8)
-    img_lr = tf.cast(img_lr , tf.uint8)
-    img_ud = tf.cast(img_ud , tf.uint8)
-    img_180 = tf.cast(img_180 , tf.uint8)
+    img = tf.cast(img, tf.uint8)
+    img_lr = tf.cast(img_lr, tf.uint8)
+    img_ud = tf.cast(img_ud, tf.uint8)
+    img_180 = tf.cast(img_180, tf.uint8)
 
     aug_imgs = [img, img_lr, img_ud, img_180, img_br, img_ct, img_st, img_ns]
 
@@ -90,6 +92,13 @@ def augment_images(img, label):
 
 
 def augment_ds(dataset: tf.data.Dataset) -> tf.data.Dataset:
-    """Augments the dataset by applying geometric transformations."""
-    dataset_aug = dataset.flat_map(lambda x, y: augment_images(x, y))
+    """Augments the dataset by applying geometric transformations.
+
+    Args:
+        dataset (tf.data.Dataset): The input dataset.
+
+    Returns:
+        tf.data.Dataset: The augmented dataset.
+    """
+    dataset_aug = dataset.flat_map(augment_images)
     return dataset_aug

@@ -1,13 +1,6 @@
-"""
-Baitwatch — Main Pipeline
-download_data : télécharge les données en local
-preprocess_dataset : préprocesse les images et sauvegarde
-train : entraîne le modèle sur le dataset préprocessé
-evaluate : évalue le modèle sur le jeu de test
-classification_report : affiche le rapport de classification
-run_cycle : exécute le cycle complet (download → preprocess → train → report)
-detect_fishes : détection de poissons sur une image
-"""
+"""Baitwatch — Main Pipeline."""
+
+import argparse
 
 import numpy as np
 from PIL import ImageFile
@@ -15,63 +8,85 @@ from tensorflow.data import Dataset
 from tensorflow.keras import Model
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
-from baitwatch.infra.data import dl_data, save_image_dataset, get_processed_dataset, get_images, get_labels, save_augmented_to_local
-from baitwatch.infra.registry import save_model, load_model
-from baitwatch.models import process_data, get_preprocess, get_compiled_model
-from baitwatch.models.commons.augment import augment_ds
-from baitwatch.models.commons.model import train_model, get_classification_report, plot_history, get_class_weights
-from baitwatch.settings import dataset_settings, model_settings, fonf_settings, DATASET_NAME, \
-    ifsp_settings
+from baitwatch.infra.data import (
+    dl_data,
+    get_images,
+    get_labels,
+    get_processed_dataset,
+    save_augmented_to_local,
+    save_image_dataset,
+)
+from baitwatch.infra.registry import load_model, save_model
+from baitwatch.models.augment import augment_ds
+from baitwatch.models.model_selector import get_compiled_model, get_preprocess, make_training_data
+from baitwatch.models.training import (
+    get_class_weights,
+    get_classification_report,
+    plot_history,
+    train_model,
+)
+from baitwatch.settings import (
+    DATASET_NAME,
+    dataset_settings,
+    fonf_settings,
+    ifsp_settings,
+    model_settings,
+)
 
 # Define image sizes
-# REMEMBER Preprocess with Opencv, which reverse order of image size compared to tensorflow used to load data
+# REMEMBER Preprocess with Opencv
+# which reverse order of image size compared to tensorflow used to load data
 DETECTION_TYPE_TO_IMG_SIZE = {
     FishDetectionEnum.FONF: fonf_settings.PREPROCESS_IMG_SIZE[::-1],
     FishDetectionEnum.IFSP: ifsp_settings.CROP_IMG_SIZE,
 }
 
 
-def download_data():
+def download_data() -> None:
     """Download data locally."""
     print("⬇️ Downloading data...")
-    dl_data(directory_path=dataset_settings.RAW_DATA_PATH)
+    dl_data(path=dataset_settings.RAW_DATA_PATH)
     print("✅ Data downloaded")
 
 
-def preprocess_data(task_type: FishDetectionEnum):
+def preprocess_data(task_type: FishDetectionEnum) -> None:
     """Process the data locally and save them."""
-
     print("🔧 Starting dataset preprocessing...")
     task_type = FishDetectionEnum(task_type)
     imgs_train, imgs_val, imgs_test = get_images(
-        directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME,
+        path=dataset_settings.RAW_DATA_PATH / DATASET_NAME,
         image_size=dataset_settings.ORIGINAL_SIZE,
     )
-    labels_train, labels_val, labels_test = get_labels(directory_path=dataset_settings.RAW_DATA_PATH / DATASET_NAME)
+    labels_train, labels_val, labels_test = get_labels(
+        path=dataset_settings.RAW_DATA_PATH / DATASET_NAME
+    )
 
     print("   Preprocessing images...")
-    processor = process_data(task_type)
+    processor = make_training_data(task_type)
     x_train, y_train = processor(imgs_train, labels_train)
     x_val, y_val = processor(imgs_val, labels_val)
     x_test, y_test = processor(imgs_test, labels_test)
 
     print("💾 Saving preprocessed datasets...")
-    save_image_dataset(x_train, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "train", labels=y_train)
-    save_image_dataset(x_val, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "val", labels=y_val)
-    save_image_dataset(x_test, dataset_settings.PROCESSED_DATA_PATH / task_type.value / "test", labels=y_test)
+    task_path = dataset_settings.PROCESSED_DATA_PATH / task_type.value
+    save_image_dataset(x_train, task_path / "train", labels=y_train)
+    save_image_dataset(x_val, task_path / "val", labels=y_val)
+    save_image_dataset(x_test, task_path / "test", labels=y_test)
 
     print("✅ Preprocessing completed and saved")
 
 
 def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
-    """Construit, compile et entraîne le modèle, puis sauvegarde + affiche les courbes."""
+    """Builds, compiles and trains the model, then saves + displays the curves."""
     print(f"🏋️ Train model({model_type})...")
     # Cast str as Enum object (from Make)
     model_type = FishDetectionEnum(model_type)
 
     model_dir_path = f"{model_type.value}_augmented" if augmented else f"{model_type.value}"
-    x_train_ds, x_val_ds, _ = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / model_dir_path,
-                                                    image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type])
+    x_train_ds, x_val_ds, _ = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / model_dir_path,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+    )
 
     print(f"🛠️️ Building model {model_type}...")
     model = get_compiled_model(model_type)
@@ -81,7 +96,12 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     if model_type == FishDetectionEnum.IFSP:
         # Manage class unbalanced
         class_weights = get_class_weights(x_train_ds, encoded=True)
-    history, model = train_model(model, x_train_ds, validation_data=x_val_ds, class_weights=class_weights)
+    history, model = train_model(
+        model,
+        x_train_ds,
+        validation_data=x_val_ds,
+        class_weights=class_weights,
+    )
 
     print("💾 Saving model...")
     save_model(model, model_type, model_settings.MODEL_LOCAL_PATH)
@@ -89,17 +109,18 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     plot_history(history)
 
 
-def evaluate(model_type: FishDetectionEnum):
+def evaluate(model_type: FishDetectionEnum) -> None:
     """Evaluate the model on the test set and display the metrics."""
-
     print(f"🧪 Model evaluating ({model_type})...")
 
     # Cast str as Enum object
     model_type = FishDetectionEnum(model_type)
     model = load_model(model_type, model_settings.MODEL_LOCAL_PATH)
 
-    _, _, x_test_ds = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / model_type.value,
-                                            image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type])
+    _, _, x_test_ds = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / model_type.value,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+    )
 
     results = model.evaluate(x_test_ds, return_dict=True)
     print(results)
@@ -135,7 +156,11 @@ def run_cycle(task_type: FishDetectionEnum) -> None:
     print("🏁 Full cycle completed")
 
 
-def detect_fishes(model: Model, detection_type: FishDetectionEnum, image: ImageFile.ImageFile) -> list[list[float]]:
+def detect_fishes(
+        model: Model,
+        detection_type: FishDetectionEnum,
+        image: ImageFile.ImageFile,
+) -> list[list[float]]:
     """Request a fish detection on given image, based on given model.
 
     Perform preprocessing on image then predict on processed image.
@@ -157,9 +182,8 @@ def detect_fishes(model: Model, detection_type: FishDetectionEnum, image: ImageF
     return results
 
 
-def save_augmented():
-    """
-    Orchestrates the augmentation and local storage of the IFSP dataset splits.
+def save_augmented() -> None:
+    """Orchestrates the augmentation and local storage of the IFSP dataset splits.
 
     This function performs the following steps:
     1. Loads the preprocessed IFSP datasets (train, validation, and test) from
@@ -170,10 +194,11 @@ def save_augmented():
     The resulting augmented images and labels are stored in subdirectories
     corresponding to their respective model types and splits.
     """
-    x_train, x_val, x_test = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / FishDetectionEnum.IFSP.value,
-                                                   image_size=ifsp_settings.CROP_IMG_SIZE,
-                                                   label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
-                                                   )
+    x_train, x_val, x_test = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / FishDetectionEnum.IFSP.value,
+        image_size=ifsp_settings.CROP_IMG_SIZE,
+        label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
+        )
 
     # Augment images, only need train
     x_train = augment_ds(x_train)
@@ -185,3 +210,63 @@ def save_augmented():
     save_augmented_to_local(x_val, FishDetectionEnum.IFSP.value, 'val')
 
     save_augmented_to_local(x_test, FishDetectionEnum.IFSP.value, 'test')
+
+
+def main() -> None:
+    """Main entry point for the baitwatch CLI."""
+    parser = argparse.ArgumentParser(description="Baitwatch - Fish Detection Pipeline")
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Download data command
+    _ = subparsers.add_parser('download-data', help='Download data')
+
+    # Preprocess command
+    preprocess_parser = subparsers.add_parser('preprocess', help='Preprocess data')
+    preprocess_parser.add_argument('dataset', choices=['fonf', 'ifsp'],
+                                   help='Dataset to preprocess')
+
+    # Train command
+    train_parser = subparsers.add_parser('train', help='Train model')
+    train_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to train on')
+    train_parser.add_argument('--augmented', action='store_true',
+                              help='Use augmented data (IFSP only)')
+
+    # Evaluate command
+    evaluate_parser = subparsers.add_parser('evaluate', help='Evaluate model')
+    evaluate_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to evaluate')
+
+    # Classification report command
+    report_parser = subparsers.add_parser('report', help='Generate classification report')
+    report_parser.add_argument('dataset', choices=['fonf', 'ifsp'],
+                               help='Dataset to generate report for')
+    report_parser.add_argument('--model-name', default='', help='Specific model name to use')
+
+    # Run cycle command
+    cycle_parser = subparsers.add_parser('cycle', help='Run complete cycle')
+    cycle_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to run cycle for')
+
+    # Save augmented command
+    _ = subparsers.add_parser('save-augmented', help='Save augmented IFSP dataset')
+
+    args = parser.parse_args()
+
+    if args.command == 'download-data':
+        download_data()
+    elif args.command == 'preprocess':
+        preprocess_data(args.dataset)
+    elif args.command == 'train':
+        train(args.dataset, augmented=args.augmented)
+    elif args.command == 'evaluate':
+        evaluate(args.dataset)
+    elif args.command == 'report':
+        classification_report(args.dataset, model_name=args.model_name)
+    elif args.command == 'cycle':
+        run_cycle(args.dataset)
+    elif args.command == 'save-augmented':
+        save_augmented()
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

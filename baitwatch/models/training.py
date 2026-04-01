@@ -1,3 +1,5 @@
+"""Baitwatch — Model Training Utils."""
+
 from collections import Counter
 
 import numpy as np
@@ -9,48 +11,46 @@ from tensorflow.data import Dataset
 from tensorflow.keras.callbacks import EarlyStopping
 
 
-def train_model(model,
+def train_model(model: keras.Model,  # noqa: PLR0913
                 *train_data: np.ndarray | Dataset,
-                validation_data: tuple[np.ndarray] | Dataset,
+                validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
                 batch_size: int = 32,
                 epochs: int = 50,
                 patience: int = 5,
-                class_weights: dict = None,
-                ) -> tuple[dict, keras.Model]:
-    """
-    Entraîne le modèle et
-    renvoie l'historique de l'entraînement et le modèle entraîné
+                class_weights: dict | None = None,
+                ) -> tuple[keras.callbacks.History, keras.Model]:
+    """Trains the model and returns the training history and the trained model.
 
     Usage:
         >>> history, model = train_model(model, X_train, y_train, validation_data=(X_val, y_val))
 
         >>> history, model = train_model(model, X_train_dataset, validation_data=X_val_dataset)
 
-    Args :
-        model: le modèle à entraîner
-        train_data: données d'entraînement
-        validation_data: données de validation
-        batch_size: taille des batches
-        epochs: nombre maximum d'epochs
-        patience: nombre d'epochs sans amélioration avant d'arrêter
+    Args:
+        model: the model to train
+        train_data: training data
+        validation_data: validation data
+        batch_size: batch size
+        epochs: maximum number of epochs
+        patience: number of epochs without improvement before stopping
+        class_weights: class weights for imbalanced datasets (optional)
 
-    Returns :
-        history: historique de l'entraînement (loss, accuracy, etc.)
-        model: le modèle entraîné
+    Returns:
+        history: training history (loss, accuracy, etc.).
+        model: the trained model.
     """
-
     early_stopping = EarlyStopping(
-        monitor='val_loss',  # surveille la loss sur la validation
-        patience=patience,  # arrête si pas d'amélioration après [patience] epochs
-        restore_best_weights=True  # remet les poids du meilleur epoch
+        monitor='val_loss',
+        patience=patience,
+        restore_best_weights=True
     )
 
     history = model.fit(
-        *train_data,  # données d'entraînement
-        validation_data=validation_data,  # données de validation
-        epochs=epochs,  # maximum 50 epochs
-        batch_size=batch_size,  # 32 images par batch
-        callbacks=[early_stopping],  # arrête automatiquement si plateau
+        *train_data,
+        validation_data=validation_data,
+        epochs=epochs,
+        batch_size=batch_size,
+        callbacks=[early_stopping],
         class_weight=class_weights,
     )
     return history, model
@@ -58,7 +58,7 @@ def train_model(model,
 
 def get_classification_report(
         model: keras.Model,
-        *validation_data: np.ndarray | Dataset,
+        validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
 ) -> str:
     """Return classification report based on given validation data and model.
 
@@ -69,54 +69,49 @@ def get_classification_report(
 
     Args:
         model: keras model to evaluate
-        validation_data: either a tf.Dataset with labels or np.ndarray X_val, y_val
+        validation_data: either a tf.Dataset with labels or np.ndarray x_val, y_val
                          containing data to get classification report from
 
     Returns:
         classification report as strings (to be printed)
     """
-    if len(validation_data) == 1 and isinstance(validation_data[0], Dataset):
+    if isinstance(validation_data, Dataset):
         # Need to extract y_val as np.array for sklearn classification report
         validation_images = []
         labels = []
 
         # Only iterate ONCE ! Each iteration shuffles the dataset.
-        for tensor, label in validation_data[0].as_numpy_iterator():
+        for tensor, label in validation_data.as_numpy_iterator():
             validation_images.append(tensor)
             labels.append(label)
 
         # Iterator returns by batch, need concatenation to removed batch
         y_val = np.concatenate(labels, axis=0)
-        X_val = np.concatenate(validation_images, axis=0)
-
-    elif len(validation_data) == 1:
-        # Consider 2 args X_train and y_val as np.array
-        X_val, y_val = validation_data
+        x_val = np.concatenate(validation_images, axis=0)
 
     else:
-        raise ValueError("Need either a tf.Dataset with labels or np.ndarray X_val, y_val !")
+        # Consider 2 args X_train and y_val as np.array
+        x_val, y_val = validation_data
 
     # Model returns a probability of class 1 => round
-    y_pred = np.round(model.predict(X_val), 0)
+    y_pred = np.round(model.predict(x_val), 0)
 
     return classification_report(y_val, y_pred)
 
 
-def plot_history(history):
+def plot_history(history: keras.callbacks.History) -> None:
+    """Displays accuracy and loss curves train vs validation.
+
+    Args:
+        history : history returned by model.fit()
     """
-    Affiche les courbes d'accuracy et de loss train vs validation
+    print("📊 Generating training curves...")
 
-    Args :
-        history : historique retourné par model.fit()
-    """
-
-    print("📊 Génération des courbes d'entraînement...")
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    _, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # ── Accuracy ─────────────────────────────────────────
-    axes[0].plot(history.history['accuracy'],     label='Train')      # courbe train
-    axes[0].plot(history.history['val_accuracy'], label='Validation') # courbe val
+    axes[0].plot(history.history['accuracy'], label='Train')      # train curve
+    axes[0].plot(history.history['val_accuracy'], label='Validation')  # val curve
     axes[0].set_title('Accuracy')
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Accuracy')
@@ -124,29 +119,37 @@ def plot_history(history):
     axes[0].grid(True, alpha=0.3)
 
     # ── Loss ─────────────────────────────────────────────
-    axes[1].plot(history.history['loss'],     label='Train')          # courbe train
-    axes[1].plot(history.history['val_loss'], label='Validation')     # courbe val
+    axes[1].plot(history.history['loss'], label='Train')          # train curve
+    axes[1].plot(history.history['val_loss'], label='Validation')     # val curve
     axes[1].set_title('Loss')
     axes[1].set_xlabel('Epoch')
     axes[1].set_ylabel('Loss')
     axes[1].legend()
     axes[1].grid(True, alpha=0.3)
 
-    plt.suptitle('Progression de l\'entraînement', fontsize=14)
+    plt.suptitle('Training Progress', fontsize=14)
     plt.tight_layout()
     plt.show()
 
-    print("✅ Courbes affichées")
+    print("✅ Curves displayed")
 
 
-def get_class_weights(dataset: Dataset, encoded:bool = False) -> dict:
+def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
+    """Compute class weights from imbalanced dataset based on inverse frequency.
+
+    Args:
+        dataset (Dataset): Dataset to compute class weights from
+        encoded (bool): Whether labels are encoded (one-hot)
+
+    Returns:
+        dict: Class weights
+    """
     # Extract class labels
     class_labels = []
     for _, labels in dataset.unbatch():
-        if encoded:
-            # Convert one-hot label to class index
-            labels = tf.argmax(labels, axis=-1)
-        class_labels.append(labels.numpy())
+        # Convert one-hot label to class index
+        label = tf.argmax(labels, axis=-1) if encoded else labels
+        class_labels.append(label.numpy())
 
     # Compute class weights
     counter = Counter(class_labels)

@@ -1,18 +1,21 @@
 """Web API."""
+import argparse
 import io
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from PIL import Image
+import uvicorn
 from fastapi import FastAPI, UploadFile
+from PIL import Image
 
-from baitwatch.domains.prediction_result import PredictionResult
-from baitwatch.main import detect_fishes
-from baitwatch.infra.registry import load_model
 from baitwatch.domains.fish_detection import FishDetectionEnum
+from baitwatch.domains.prediction_result import PredictionResult
+from baitwatch.infra.registry import load_model
+from baitwatch.main import detect_fishes
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: RUF029
     """Application's lifespan.
 
     Put resources that should be initialized once before the app,
@@ -40,12 +43,18 @@ app = FastAPI(
 
 
 @app.post("/detect-fishes/")
-async def detect(detection_type: FishDetectionEnum, image_file: UploadFile) -> PredictionResult | dict[str, str]:
+async def detect(
+        detection_type: FishDetectionEnum,
+        image_file: UploadFile,
+) -> PredictionResult | dict[str, str]:
     """Request a fish detection on given image, according to the detection type.
 
-    - **detection_type** (FishDetectionEnum): Type of detection to use.
-    - **image_file** (UploadFile): image to detect fishes from.
-    - Returns: Nothing for now
+    Args:
+        detection_type (FishDetectionEnum): Type of detection to use.
+        image_file (UploadFile): image to detect fishes from.
+
+    Returns:
+         Nothing for now
     """
     # Ensure Enum object is used
     detection_type = FishDetectionEnum(detection_type)
@@ -65,8 +74,32 @@ async def detect(detection_type: FishDetectionEnum, image_file: UploadFile) -> P
 
 @app.get("/ping/")
 async def ping() -> list[str]:
-    """PING
+    """PING.
 
-    Returns: PONG
+    Returns:
+        PONG
     """
     return ["pong"]
+
+
+def main() -> None:
+    """Main entry point for the API server."""
+    parser = argparse.ArgumentParser(description="Baitwatch API Server")
+    parser.add_argument('--host', default='127.0.0.1', help='Host to bind to')
+    parser.add_argument('--port', type=int, default=8000, help='Port to bind to')
+    parser.add_argument('--reload', action='store_true', help='Enable auto-reload')
+    parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
+
+    args = parser.parse_args()
+
+    uvicorn.run(
+        "baitwatch.interfaces.api:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        workers=args.workers if not args.reload else 1,
+    )
+
+
+if __name__ == "__main__":
+    main()

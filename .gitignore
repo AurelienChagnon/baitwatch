@@ -223,11 +223,11 @@ __marimo__/
 *Zone.Identifier
 
 # Project
-raw_data/*
-processed_data/*
-model/*
-!model/.gitkeep
-!processed_data/.gitkeep
-!raw_data/.gitkeep
+data/raw_data/*
+data/processed_data/*
+models/*
+!models/.gitkeep
+!data/processed_data/.gitkeep
+!data/raw_data/.gitkeep
 *.ipynb
 *.zip
