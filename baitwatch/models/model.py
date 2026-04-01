@@ -1,3 +1,5 @@
+"""Baitwatch — Model Utils."""
+
 from collections import Counter
 
 import numpy as np
@@ -9,16 +11,15 @@ from tensorflow.data import Dataset
 from tensorflow.keras.callbacks import EarlyStopping
 
 
-def train_model(model,
+def train_model(model: keras.Model,  # noqa: PLR0913
                 *train_data: np.ndarray | Dataset,
-                validation_data: tuple[np.ndarray] | Dataset,
+                validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
                 batch_size: int = 32,
                 epochs: int = 50,
                 patience: int = 5,
-                class_weights: dict = None,
+                class_weights: dict | None = None,
                 ) -> tuple[dict, keras.Model]:
-    """Trains the model and
-    returns the training history and the trained model
+    """Trains the model and returns the training history and the trained model.
 
     Usage:
         >>> history, model = train_model(model, X_train, y_train, validation_data=(X_val, y_val))
@@ -32,23 +33,24 @@ def train_model(model,
         batch_size: batch size
         epochs: maximum number of epochs
         patience: number of epochs without improvement before stopping
+        class_weights: class weights for imbalanced datasets (optional)
 
     Returns:
-        history: training history (loss, accuracy, etc.)
-        model: the trained model
+        history: training history (loss, accuracy, etc.).
+        model: the trained model.
     """
     early_stopping = EarlyStopping(
-        monitor='val_loss',  # monitors loss on validation
-        patience=patience,  # stops if no improvement after [patience] epochs
-        restore_best_weights=True  # restores weights from best epoch
+        monitor='val_loss',
+        patience=patience,
+        restore_best_weights=True
     )
 
     history = model.fit(
-        *train_data,  # training data
-        validation_data=validation_data,  # validation data
-        epochs=epochs,  # maximum 50 epochs
-        batch_size=batch_size,  # 32 images per batch
-        callbacks=[early_stopping],  # automatically stops if plateau
+        *train_data,
+        validation_data=validation_data,
+        epochs=epochs,
+        batch_size=batch_size,
+        callbacks=[early_stopping],
         class_weight=class_weights,
     )
     return history, model
@@ -56,7 +58,7 @@ def train_model(model,
 
 def get_classification_report(
         model: keras.Model,
-        *validation_data: np.ndarray | Dataset,
+        validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
 ) -> str:
     """Return classification report based on given validation data and model.
 
@@ -73,13 +75,13 @@ def get_classification_report(
     Returns:
         classification report as strings (to be printed)
     """
-    if len(validation_data) == 1 and isinstance(validation_data[0], Dataset):
+    if isinstance(validation_data, Dataset):
         # Need to extract y_val as np.array for sklearn classification report
         validation_images = []
         labels = []
 
         # Only iterate ONCE ! Each iteration shuffles the dataset.
-        for tensor, label in validation_data[0].as_numpy_iterator():
+        for tensor, label in validation_data.as_numpy_iterator():
             validation_images.append(tensor)
             labels.append(label)
 
@@ -87,12 +89,9 @@ def get_classification_report(
         y_val = np.concatenate(labels, axis=0)
         x_val = np.concatenate(validation_images, axis=0)
 
-    elif len(validation_data) == 1:
+    else:
         # Consider 2 args X_train and y_val as np.array
         x_val, y_val = validation_data
-
-    else:
-        raise ValueError("Need either a tf.Dataset with labels or np.ndarray x_val, y_val !")
 
     # Model returns a probability of class 1 => round
     y_pred = np.round(model.predict(x_val), 0)
@@ -100,8 +99,8 @@ def get_classification_report(
     return classification_report(y_val, y_pred)
 
 
-def plot_history(history):
-    """Displays accuracy and loss curves train vs validation
+def plot_history(history: keras.callbacks.History) -> None:
+    """Displays accuracy and loss curves train vs validation.
 
     Args:
         history : history returned by model.fit()
@@ -136,13 +135,21 @@ def plot_history(history):
 
 
 def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
+    """Compute class weights from imbalanced dataset based on inverse frequency.
+
+    Args:
+        dataset (Dataset): Dataset to compute class weights from
+        encoded (bool): Whether labels are encoded (one-hot)
+
+    Returns:
+        dict: Class weights
+    """
     # Extract class labels
     class_labels = []
     for _, labels in dataset.unbatch():
-        if encoded:
-            # Convert one-hot label to class index
-            labels = tf.argmax(labels, axis=-1)
-        class_labels.append(labels.numpy())
+        # Convert one-hot label to class index
+        label = tf.argmax(labels, axis=-1) if encoded else labels
+        class_labels.append(label.numpy())
 
     # Compute class weights
     counter = Counter(class_labels)
