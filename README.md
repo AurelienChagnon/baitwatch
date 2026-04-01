@@ -298,26 +298,26 @@ invoke full-pipeline-augmented --dataset ifsp   # run pipeline with augmentation
 You can also run commands directly using Python modules:
 
 ```bash
-python -m baitwatch.main download-data
-python -m baitwatch.main preprocess fonf
-python -m baitwatch.main train ifsp --augmented
-python -m baitwatch.main evaluate fonf
-python -m baitwatch.main report ifsp
-python -m baitwatch.main cycle fonf
-python -m baitwatch.main save-augmented
+python -m baitwatch download-data
+python -m baitwatch preprocess fonf
+python -m baitwatch train ifsp --augmented
+python -m baitwatch evaluate fonf
+python -m baitwatch report ifsp
+python -m baitwatch cycle fonf
+python -m baitwatch save-augmented
 python -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
 ```
 
 Or if you are using `uv`
 
 ```bash
-uv run -m baitwatch.main download-data
-uv run -m baitwatch.main preprocess fonf
-uv run -m baitwatch.main train ifsp --augmented
-uv run -m baitwatch.main evaluate fonf
-uv run -m baitwatch.main report ifsp
-uv run -m baitwatch.main cycle fonf
-uv run -m baitwatch.main save-augmented
+uv run -m baitwatch download-data
+uv run -m baitwatch preprocess fonf
+uv run -m baitwatch train ifsp --augmented
+uv run -m baitwatch evaluate fonf
+uv run -m baitwatch report ifsp
+uv run -m baitwatch cycle fonf
+uv run -m baitwatch save-augmented
 uv run -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
 ```
 

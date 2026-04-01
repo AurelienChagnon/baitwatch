@@ -8,10 +8,10 @@ import uvicorn
 from fastapi import FastAPI, UploadFile
 from PIL import Image
 
+from baitwatch.app import detect_fishes
 from baitwatch.domains.fish_detection import FishDetectionEnum
 from baitwatch.domains.prediction_result import PredictionResult
 from baitwatch.infra.registry import load_model
-from baitwatch.main import detect_fishes
 
 
 @asynccontextmanager
