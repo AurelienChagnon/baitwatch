@@ -28,6 +28,9 @@ def make_training_data_fonf(
 def preprocess_fonf(dataset: Dataset) -> Dataset:
     """Preprocess dataset for Fonf model.
 
+    Automatically white balances and enhances contrast,
+    then resizes images to Fonf's expected size (see settings).
+
     Args:
         dataset (Dataset): Dataset of images
 

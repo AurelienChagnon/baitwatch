@@ -12,7 +12,7 @@ from baitwatch.models.fonf.preprocessing import preprocess_fonf, make_training_d
 from baitwatch.models.ifsp.model import build_model as ifsp_model
 from baitwatch.models.ifsp.model import compile_model as ifsp_compile_model
 from baitwatch.models.ifsp.model import get_optimizer as ifsp_optimizer
-from baitwatch.models.ifsp.preprocessing import preprocess_ifsp, process_data_ifsp
+from baitwatch.models.ifsp.preprocessing import preprocess_ifsp, make_training_data_ifsp
 
 __all__ = [
     "get_build_model",
@@ -28,7 +28,7 @@ def process_data(
 ) -> Callable[[Dataset, Dataset], tuple[Dataset, np.ndarray]]:
     detection_to_processed_imgs = {
         FishDetectionEnum.FONF: make_training_data_fonf,
-        FishDetectionEnum.IFSP: process_data_ifsp,
+        FishDetectionEnum.IFSP: make_training_data_ifsp,
     }
 
     return detection_to_processed_imgs[detection_type]
