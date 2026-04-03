@@ -219,7 +219,7 @@ After running the preprocessing and augmentation commands, the full `/data/proce
 
 - `/data/processed/fonf/` — images organized into `fish/` and `no_fish/` subdirectories at 256×144, ready for `keras.utils.image_dataset_from_directory`.
 - `/data/processed/ifsp/` — images cropped on bounding box, resized with black padding to 256×105, organized by species label.
-- `/data/processed/ifsp_augmented/` — produced by `invoke save-augmented`; enhanced training images for all classes, organized by split (`train/`, `test/`, `val/`) then by class ID (`0/`, `1/`, …`7/`).
+- `/data/processed/ifsp_augmented/` — produced by `invoke augment`; enhanced training images for all classes, organized by split (`train/`, `test/`, `val/`) then by class ID (`0/`, `1/`, …`7/`).
 
 ---
 
@@ -240,9 +240,9 @@ Downloads the Tassie BRUV dataset and places it under `data/raw/`.
 ```bash
 invoke preprocess --dataset fonf   # auto white balance + contrast stretch + resize to 256×144
 invoke preprocess --dataset ifsp   # auto white balance + contrast stretch + crop on bounding box
-                                 # → resize + black padding to 256×105
-invoke save-augmented              # apply image enhancement to IFSP minority classes (training set only)
-                                 # requires preprocess --dataset ifsp to be run first
+                                   # → resize + black padding to 256×105
+invoke augment                     # apply image enhancement (training set only)
+                                   # requires preprocess --dataset fonf/ifsp to be run first
 ```
 
 Preprocessed images are saved to disk under `/data/processed/` before any training begins.
@@ -304,7 +304,7 @@ python -m baitwatch train ifsp --augmented
 python -m baitwatch evaluate fonf
 python -m baitwatch report ifsp
 python -m baitwatch cycle fonf
-python -m baitwatch save-augmented
+python -m baitwatch augment fonf
 python -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
 ```
 
@@ -317,7 +317,7 @@ uv run -m baitwatch train ifsp --augmented
 uv run -m baitwatch evaluate fonf
 uv run -m baitwatch report ifsp
 uv run -m baitwatch cycle fonf
-uv run -m baitwatch save-augmented
+uv run -m baitwatch augment fonf
 uv run -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
 ```
 

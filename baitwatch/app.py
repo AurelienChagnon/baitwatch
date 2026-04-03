@@ -32,12 +32,12 @@ from baitwatch.settings import (
 )
 
 __all__ = [
+    "augment",
     "classification_report",
     "download_data",
     "evaluate",
     "preprocess_data",
     "run_cycle",
-    "save_augmented",
     "train",
 ]
 
@@ -193,22 +193,29 @@ def detect_fishes(
     return results
 
 
-def save_augmented() -> None:
-    """Orchestrates the augmentation and local storage of the IFSP dataset splits.
+def augment(
+        detection_type: FishDetectionEnum,
+) -> None:
+    """Orchestrates the augmentation and local storage of the given dataset splits.
 
     This function performs the following steps:
-    1. Loads the preprocessed IFSP datasets (train, validation, and test) from
+    1. Loads the preprocessed datasets (train, validation, and test) from
        the local processed data path using specific crop dimensions.
     2. Sequentially triggers the augmentation and saving process for each split
-       ('train', 'val', 'test') by calling `save_augmented_to_local`.
+       ('train', 'val', 'test').
 
     The resulting augmented images and labels are stored in subdirectories
     corresponding to their respective model types and splits.
+
+    Args:
+        detection_type (FishDetectionEnum): Fish detection type
     """
-    logger.info("Loading IFSP datasets for augmentation...")
+    # Cast str as Enum object
+    task_type = FishDetectionEnum(detection_type)
+    logger.info(f"Loading {task_type} datasets for augmentation...")
     x_train, x_val, x_test = get_processed_dataset(
-        dataset_settings.PROCESSED_DATA_PATH / FishDetectionEnum.IFSP.value,
-        image_size=ifsp_settings.CROP_IMG_SIZE,
+        dataset_settings.PROCESSED_DATA_PATH / task_type.value,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[task_type],
         label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
         )
 
@@ -218,7 +225,7 @@ def save_augmented() -> None:
 
     # Save
     logger.info("Saving augmented training data...")
-    path = dataset_settings.PROCESSED_DATA_PATH / f'{FishDetectionEnum.IFSP.value}_augmented'
+    path = dataset_settings.PROCESSED_DATA_PATH / f'{task_type.value}_augmented'
     save_dataset_by_label(x_train, path / "train")
 
     # Save non-augmented val and test for easier management during training

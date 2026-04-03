@@ -69,9 +69,9 @@ def cycle(context: Context, dataset: str) -> None:
 
 
 @task
-def save_augmented(context: Context) -> None:
-    """Save augmented IFSP dataset."""
-    context.run("python -m baitwatch save-augmented")
+def augment(context: Context, dataset: str) -> None:
+    """Save augmented dataset."""
+    context.run(f"python -m baitwatch augment {dataset}")
 
 
 @task

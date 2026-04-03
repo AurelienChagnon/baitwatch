@@ -3,12 +3,12 @@
 import argparse
 
 from baitwatch.app import (
+    augment,
     classification_report,
     download_data,
     evaluate,
     preprocess_data,
     run_cycle,
-    save_augmented,
     train,
 )
 
@@ -30,7 +30,7 @@ def main() -> None:
     train_parser = subparsers.add_parser('train', help='Train model')
     train_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to train on')
     train_parser.add_argument('--augmented', action='store_true',
-                              help='Use augmented data (IFSP only)')
+                              help='Use augmented data')
 
     # Evaluate command
     evaluate_parser = subparsers.add_parser('evaluate', help='Evaluate model')
@@ -47,7 +47,8 @@ def main() -> None:
     cycle_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to run cycle for')
 
     # Save augmented command
-    _ = subparsers.add_parser('save-augmented', help='Save augmented IFSP dataset')
+    augmented_parser = subparsers.add_parser('augment', help='Augment dataset')
+    augmented_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to augment')
 
     args = parser.parse_args()
 
@@ -63,7 +64,7 @@ def main() -> None:
         classification_report(args.dataset, model_name=args.model_name)
     elif args.command == 'cycle':
         run_cycle(args.dataset)
-    elif args.command == 'save-augmented':
-        save_augmented()
+    elif args.command == 'augment':
+        augment(args.dataset)
     else:
         parser.print_help()
