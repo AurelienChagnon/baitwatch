@@ -8,6 +8,7 @@ from baitwatch.app import (
     download_data,
     evaluate,
     preprocess_data,
+    run_api,
     run_cycle,
     train,
 )
@@ -50,6 +51,13 @@ def main() -> None:
     augmented_parser = subparsers.add_parser('augment', help='Augment dataset')
     augmented_parser.add_argument('dataset', choices=['fonf', 'ifsp'], help='Dataset to augment')
 
+    # API command
+    api_parser = subparsers.add_parser('api', help='Run API')
+    api_parser.add_argument('--host', default='127.0.0.1', help='Host to run API on')
+    api_parser.add_argument('--port', default=8080, help='Port to run API on')
+    api_parser.add_argument('--reload', action='store_true', help='Reload API on code changes')
+    api_parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
+
     args = parser.parse_args()
 
     if args.command == 'download-data':
@@ -66,5 +74,7 @@ def main() -> None:
         run_cycle(args.dataset)
     elif args.command == 'augment':
         augment(args.dataset)
+    elif args.command == 'api':
+        run_api(args.host, args.port, args.reload, args.workers)
     else:
         parser.print_help()

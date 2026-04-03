@@ -1,6 +1,7 @@
 """Baitwatch — Main Pipeline."""
 
 import numpy as np
+import uvicorn
 from PIL import ImageFile
 from tensorflow.data import Dataset
 from tensorflow.keras import Model
@@ -34,9 +35,11 @@ from baitwatch.settings import (
 __all__ = [
     "augment",
     "classification_report",
+    "detect_fishes",
     "download_data",
     "evaluate",
     "preprocess_data",
+    "run_api",
     "run_cycle",
     "train",
 ]
@@ -234,3 +237,21 @@ def augment(
     save_dataset_by_label(x_test, path / "test")
 
     logger.info("[SUCCESS] Augmented datasets saved successfully")
+
+
+def run_api(host: str, port: int, reload: bool, workers: int) -> None:
+    """Run the API server.
+
+    Args:
+        host (str): Host to run API on
+        port (int): Port to run API on
+        reload (bool): Enable auto-reload
+        workers (int): Number of worker processes
+    """
+    uvicorn.run(
+        "baitwatch.interfaces.api:app",
+        host=host,
+        port=port,
+        reload=reload,
+        workers=workers if not reload else 1,
+    )
