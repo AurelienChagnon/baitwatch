@@ -1,8 +1,8 @@
 """Fonf model preprocessing."""
 
-import numpy as np
 from tensorflow.data import Dataset
 
+from baitwatch.logger import logger
 from baitwatch.models.preprocessing import preprocess_ds, resize_ds
 from baitwatch.settings import fonf_settings
 
@@ -10,7 +10,7 @@ from baitwatch.settings import fonf_settings
 def make_training_data_fonf(
         imgs: Dataset,
         labels: Dataset,
-) -> tuple[Dataset, np.ndarray]:
+) -> tuple[Dataset, Dataset]:
     """Transform dataset into training data for Fonf model.
 
     Args:
@@ -18,10 +18,12 @@ def make_training_data_fonf(
         labels (Dataset): Dataset of labels
 
     Returns:
-        tuple[Dataset, np.ndarray]: Tuple of preprocessed images and targets
+        tuple[Dataset, Dataset]: Tuple of preprocessed images and targets
     """
+    logger.debug("Starting FONF training data preparation")
     x = preprocess_fonf(imgs)
-    y = get_target_fonf(labels)
+    y = to_binary_fonf(labels)
+    logger.info("FONF training data prepared successfully")
     return x, y
 
 
@@ -37,27 +39,22 @@ def preprocess_fonf(dataset: Dataset) -> Dataset:
     Returns:
         Dataset: Preprocessed dataset
     """
+    logger.debug("Preprocessing dataset for FONF model")
     dataset = preprocess_ds(dataset)
     dataset = resize_ds(dataset, img_size=fonf_settings.PREPROCESS_IMG_SIZE)
     return dataset
 
 
-def get_target_fonf(
-        labels: Dataset,
-) -> np.ndarray:
-    """Get the binary target "Fish Or No Fish" (fonf).
+def to_binary_fonf(y: Dataset) -> Dataset:
+    """Convert labels to binary for Fonf model.
 
-    If labels empty: no fish = O
-    If labels contains something: fish = 1
+    Fish = 1
+    No fish = 0
 
     Args:
-        labels (Dataset): Dataset of labels
+        y (Dataset): Dataset of labels
 
     Returns:
-        np.ndarray: Array of 0 and 1
+        Dataset: Dataset of binary labels
     """
-    # If there is no label, there is no fish (0)
-    y = np.array([0 if txt == b'' else 1
-                  for txt in labels.as_numpy_iterator()])
-
-    return y
+    return y.map(lambda x: 0 if x == b'' else 1)

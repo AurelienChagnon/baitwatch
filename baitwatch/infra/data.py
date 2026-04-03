@@ -3,16 +3,18 @@
 This module handles the data loading and saving.
 """
 
+import shutil
 from pathlib import Path
 from typing import Literal
 
-import numpy as np
-import tensorflow as tf
 from google.cloud import storage
 from google.cloud.storage import transfer_manager
 from PIL import Image
+from tensorflow import keras
+from tensorflow.data import Dataset
 
-from baitwatch.settings import DATASET_NAME, cloud_settings, dataset_settings
+from baitwatch.logger import logger
+from baitwatch.settings import DATASET_NAME, PROJECT_PATH, cloud_settings, dataset_settings
 
 
 def dl_data(
@@ -27,33 +29,34 @@ def dl_data(
     datadir_path = path / DATASET_NAME
 
     if datadir_path.is_dir() and list(datadir_path.iterdir()):
-        print("✅ Data already downloaded !")
+        logger.info("[SUCCESS] Data already downloaded !")
+        return
 
-    else:
-        print(f"✋ Loading data from {cloud_settings.BUCKET_NAME}...")
-        local_filename = path
+    logger.info(f"[DOWNLOAD] Loading data from {cloud_settings.BUCKET_NAME}...")
+    local_filename = path
 
-        client = storage.Client()
-        bucket = client.bucket(cloud_settings.BUCKET_NAME)
-        blobs = [
-            blob.name
-            for blob in client.list_blobs(
-                cloud_settings.BUCKET_NAME,
-                prefix="training_data_species_grouped",
-            )
-        ]
-        transfer_manager.download_many_to_path(bucket,
-                                               blobs,
-                                               destination_directory=str(local_filename),
-                                               skip_if_exists=True,
-                                               )
-        print("✅ Data downloaded successfully !")
+    client = storage.Client()
+    bucket = client.bucket(cloud_settings.BUCKET_NAME)
+    blobs = [
+        blob.name
+        for blob in client.list_blobs(
+            cloud_settings.BUCKET_NAME,
+            prefix="training_data_species_grouped",
+        )
+    ]
+    logger.debug(f"Downloading {len(blobs)} files from bucket")
+    transfer_manager.download_many_to_path(bucket,
+                                           blobs,
+                                           destination_directory=str(local_filename),
+                                           skip_if_exists=True,
+                                           )
+    logger.info("[SUCCESS] Data downloaded successfully !")
 
 
 def get_images(
         path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
         image_size: tuple[int, int] = dataset_settings.ORIGINAL_SIZE,
-) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+) -> tuple[Dataset, Dataset, Dataset]:
     """Retrieve images from the dataset.
 
     Args:
@@ -64,7 +67,7 @@ def get_images(
             Defaults to dataset_settings.ORIGINAL_SIZE.
 
     Returns:
-        tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+        tuple[Dataset, Dataset, Dataset]:
             - images_train: training images
             - images_val: validation images
             - images_test: test images
@@ -77,17 +80,17 @@ def get_images(
         raise FileNotFoundError(error)
 
     # image_dataset_from_directory retrieves images from the directory
-    images_train = tf.keras.utils.image_dataset_from_directory(path / "images" / "train",
+    images_train = keras.utils.image_dataset_from_directory(path / "images" / "train",
                                                                labels=None,
                                                                batch_size=None,
                                                                shuffle=False,
                                                                image_size=image_size)
-    images_test = tf.keras.utils.image_dataset_from_directory(path / "images" / "test",
+    images_test = keras.utils.image_dataset_from_directory(path / "images" / "test",
                                                               labels=None,
                                                               batch_size=None,
                                                               shuffle=False,
                                                               image_size=image_size)
-    images_val = tf.keras.utils.image_dataset_from_directory(path / "images" / "valid",
+    images_val = keras.utils.image_dataset_from_directory(path / "images" / "valid",
                                                              labels=None,
                                                              batch_size=None,
                                                              shuffle=False,
@@ -98,7 +101,7 @@ def get_images(
 
 def get_labels(
         path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
-) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+) -> tuple[Dataset, Dataset, Dataset]:
     """Retrieve labels from the dataset.
 
     Args:
@@ -107,7 +110,7 @@ def get_labels(
             Defaults to dataset_settings.RAW_DATA_PATH / DATASET_NAME.
 
     Returns:
-        tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+        tuple[Dataset, Dataset, Dataset]:
             - labels_train: training labels
             - labels_val: validation labels
             - labels_test: test labels
@@ -119,15 +122,15 @@ def get_labels(
         error = f"No data found at {path}"
         raise FileNotFoundError(error)
 
-    labels_train = tf.keras.utils.text_dataset_from_directory(path / "labels" / "train",
+    labels_train = keras.utils.text_dataset_from_directory(path / "labels" / "train",
                                                               labels=None,
                                                               batch_size=None,
                                                               shuffle=False)
-    labels_test = tf.keras.utils.text_dataset_from_directory(path / "labels" / "test",
+    labels_test = keras.utils.text_dataset_from_directory(path / "labels" / "test",
                                                              labels=None,
                                                              batch_size=None,
                                                              shuffle=False)
-    labels_val = tf.keras.utils.text_dataset_from_directory(path / "labels" / "valid",
+    labels_val = keras.utils.text_dataset_from_directory(path / "labels" / "valid",
                                                             labels=None,
                                                             batch_size=None,
                                                             shuffle=False)
@@ -135,46 +138,21 @@ def get_labels(
     return labels_train, labels_val, labels_test
 
 
-def save_image_dataset(
-        dataset: tf.data.Dataset,
-        path: Path,
-        labels: np.ndarray | None = None,
-) -> None:
-    """Save the dataset as JPEG images.
-
-    If labels is passed, the images are separated into different folder according
-    to the labels.
-    Labels MUST BE ordered accordingly to associate correctly the image in dataset.
+def _clear_directory(path: Path) -> None:
+    """Clear all contents of a directory.
 
     Args:
-        dataset (tf.data.Dataset): Dataset to save.
-        path (Path): Path to save dataset into.
-        labels (np.ndarray | None, optional): Labels to separate dataset into. Defaults to None.
+        path (Path): Directory path to clear.
     """
-    if not path.exists():
-        path.mkdir(parents=True)
-
-    if list(path.iterdir()):
-        print(f"Warning! Path {path} not empty, images will be rewritten.")
-
-    # Dataset are not loaded files, len(dataset) would only return 1
-    len_dataset = dataset.cardinality().numpy()
-
-    if labels is None:
-        # Create an array of empty strings so no label directories are needed
-        labels = np.array(["" for _ in range(len_dataset)])
-    else:
-        # Create directories for each label
-        for label in np.unique(labels):
-            label_path = path / str(label)
-            if not label_path.exists():
-                label_path.mkdir(parents=True)
-
-    for index, (tensor, label) in enumerate(zip(dataset, labels, strict=True)):
-        # Cast into numpay array
-        numpy_image = tensor.numpy().astype("uint8")
-        image = Image.fromarray(numpy_image)
-        image.save(path / str(label) / f"img_{index}.jpg")
+    logger.debug(f"Clearing directory contents: {path}")
+    if not str(path.absolute()).startswith(str(PROJECT_PATH)):
+        logger.warning(f"Path {path} not in project, will not clear directory.")
+        return
+    for item in path.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
 
 
 def get_processed_dataset(
@@ -182,8 +160,8 @@ def get_processed_dataset(
         *,
         image_size: tuple[int, int],
         label_mode: Literal["int", "categorical", "auto"] = "auto",
-) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    """Load preprocessed images into tf.data.Dataset with labels.
+) -> tuple[Dataset, Dataset, Dataset]:
+    """Load preprocessed images into Dataset with labels.
 
     Args:
         path (Path): Path of preprocessed data, with train, val, test folders.
@@ -192,7 +170,7 @@ def get_processed_dataset(
             Defaults to "auto".
 
     Returns:
-        tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+        tuple[Dataset, Dataset, Dataset]:
             - x_train_ds: training dataset
             - x_val_ds: validation dataset
             - x_test_ds: test dataset
@@ -213,18 +191,18 @@ def get_processed_dataset(
         )  # Ignore hidden directories
         label_mode = "categorical" if nb_dir > categorical_threshold else "int"
 
-    x_train_ds = tf.keras.utils.image_dataset_from_directory(path / "train",
+    x_train_ds = keras.utils.image_dataset_from_directory(path / "train",
                                                              labels="inferred",
                                                              shuffle=True,
                                                              image_size=image_size,
                                                              label_mode=label_mode
                                                              )
-    x_val_ds = tf.keras.utils.image_dataset_from_directory(path / "val",
+    x_val_ds = keras.utils.image_dataset_from_directory(path / "val",
                                                            labels="inferred",
                                                            shuffle=True,
                                                            image_size=image_size,
                                                            label_mode=label_mode)
-    x_test_ds = tf.keras.utils.image_dataset_from_directory(path / "test",
+    x_test_ds = keras.utils.image_dataset_from_directory(path / "test",
                                                             labels="inferred",
                                                             shuffle=True,
                                                             image_size=image_size,
@@ -248,7 +226,7 @@ def dl_augmented_images(
     # ── Download if not available locally ────────────────────────
     if (not augmented_path.exists()
             or not [f for f in augmented_path.iterdir() if not f.name.startswith('.')]):
-        print("✋ Augmented data not found, downloading from bucket...")
+        logger.info("[DOWNLOAD] Augmented data not found, downloading from bucket...")
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
         blobs = [
@@ -258,41 +236,60 @@ def dl_augmented_images(
                 prefix="augmented_images",
             )
         ]
+        logger.debug(f"Downloading {len(blobs)} augmented files")
         transfer_manager.download_many_to_path(
             bucket,
             blobs,
             destination_directory=str(directory_path),
             skip_if_exists=True,
         )
-        print("✅ Augmented data downloaded !")
+        logger.info("[SUCCESS] Augmented data downloaded !")
     else:
-        print("✅ You already have the augmented data !")
+        logger.info("[SUCCESS] You already have the augmented data !")
 
 
-def save_augmented_to_local(dataset: tf.data.Dataset, model_name: str, split: str) -> None:
-    """Applies data augmentation to a dataset and saves the results to local storage.
+def save_dataset_by_label(
+        dataset: Dataset,
+        path: Path,
+        labels: Dataset | None = None,
+) -> None:
+    """Save a dataset with images and labels, organizing images by label.
 
-    This function processes an input dataset using a flat_map transformation to
-    generate multiple augmented variations (images and labels) for every original
-    sample. It then collects these variations into memory and exports them as
-    individual files using the project's standardized saving utility.
+    Images are saved into subdirectories named after their label values (0, 1, 2, etc.).
+    Each image is saved as a JPEG file with a sequential index.
 
     Args:
-        dataset (tf.data.Dataset): The input dataset containing (image, label) pairs.
-            It is recommended to unbatch the dataset before passing it to this function.
-        model_name (str): The name of the model/species task (e.g., 'ifsp', 'fonf'),
-            used to define the output directory.
-        split (str): The dataset split being processed (e.g., 'train', 'val', or 'test').
+        dataset (Dataset): Dataset containing (image, label) tuples or image only (use
+        param labels).
+        path (Path): Root path where label subdirectories will be created.
+        labels (Dataset | None, optional): Dataset containing labels. Defaults to None.
     """
-    images = []
-    labels = []
-    for img, lab in dataset:
-        images.append(img)
-        labels.append(lab)
+    if not path.exists():
+        path.mkdir(parents=True)
 
-    images = tf.concat(images, axis=0)
-    labels = tf.concat(labels, axis=0)
+    if list(path.iterdir()):
+        logger.warning(f"Path {path} not empty, clearing contents before saving.")
+        _clear_directory(path)
 
-    save_image_dataset(tf.data.Dataset.from_tensor_slices(images),
-                       dataset_settings.PROCESSED_DATA_PATH / f'{model_name}_augmented' / split,
-                       labels=labels.numpy())
+    label_counters = {}
+
+    # When dataset does not contain labels, use labels param
+    iterable = zip(dataset, labels, strict=True) if labels is not None else dataset.unbatch()
+
+    for image, label in iterable:
+        label_value = label.numpy().astype("int")
+        label_dir = path / str(label_value)
+
+        if not label_dir.exists():
+            label_dir.mkdir(parents=True)
+            label_counters[label_value] = 0
+
+        if label_value not in label_counters:
+            label_counters[label_value] = 0
+
+        numpy_image = image.numpy().astype("uint8")
+        img = Image.fromarray(numpy_image)
+        img.save(label_dir / f"img_{label_counters[label_value]}.jpg")
+        label_counters[label_value] += 1
+
+    logger.info(f"Saved dataset to {path} with {len(label_counters)} label directories")

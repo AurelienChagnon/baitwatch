@@ -4,15 +4,16 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.data import Dataset
 
-from baitwatch.models.ifsp.bounding_box import build_bbox_dataframe, crop_bb, reshape_pad_crop
+from baitwatch.logger import logger
+from baitwatch.models.ifsp.bounding_box import extract_fish_bounding_boxes, padded_resize
 from baitwatch.models.preprocessing import preprocess_ds
-from baitwatch.settings import dataset_settings, ifsp_settings
+from baitwatch.settings import ifsp_settings
 
 
 def make_training_data_ifsp(
         imgs: Dataset,
         labels: Dataset,
-) -> tuple[Dataset, np.ndarray]:
+) -> tuple[Dataset, Dataset]:
     """Preprocess images and crop every fishes out of them.
 
     Args:
@@ -20,22 +21,24 @@ def make_training_data_ifsp(
         labels (Dataset): Dataset of labels
 
     Returns:
-        tuple[Dataset, np.ndarray]: Tuple of preprocessed images and targets
+        tuple[Dataset, Dataset]: Tuple of preprocessed images and targets
     """
-    # TODO: Clean up code to save images after preprocessing rather than keeping all in memory
-    # Process images
-    imgs_preprocessed = preprocess_ds(imgs)
+    logger.debug("Starting IFSP training data preparation")
+    fish_bb = []
+    fish_labels = []
+    imgs = preprocess_ds(imgs)
+    for img, label in zip(imgs, labels, strict=True):
+        fishes_in_img, associated_labels = extract_fish_bounding_boxes(
+            img,
+            label,
+            target_size=ifsp_settings.CROP_IMG_SIZE
+        )
+        fish_bb.extend(fishes_in_img)
+        fish_labels.extend(associated_labels)
 
-    # Fetch bounding boxes
-    bb_df = build_bbox_dataframe(labels, img_size=dataset_settings.ORIGINAL_SIZE)
-
-    # Crop and pad images to keep only bounding boxes
-    crop_imgs, y = crop_bb(bb_df, imgs_preprocessed)
-    padded_imgs = reshape_pad_crop(crop_imgs, format_img=ifsp_settings.CROP_IMG_SIZE)
-    x = Dataset.from_tensor_slices(padded_imgs)
-
-    # Convert
-    y = np.array(y)
+    logger.info(f"Extracted {len(fish_bb)} fish bounding boxes for IFSP training")
+    x = Dataset.from_tensor_slices(fish_bb)
+    y = Dataset.from_tensor_slices(fish_labels)
 
     return x, y
 
@@ -44,7 +47,7 @@ def preprocess_ifsp(dataset: Dataset) -> Dataset:
     """Preprocess pipeline for IFSP model.
 
     Automatically white balances and enhances contrast,
-    then resizes images to IFSP's expected size.
+    then resizes and pads images to IFSP's expected size.
 
     Args:
         dataset (Dataset): Dataset of images
@@ -52,12 +55,13 @@ def preprocess_ifsp(dataset: Dataset) -> Dataset:
     Returns:
         Dataset: Preprocessed dataset
     """
+    logger.debug("Preprocessing dataset for IFSP model")
     dataset = preprocess_ds(dataset)
 
     @tf.py_function(Tout=tf.uint8)  # 8bit image
     def resize(processed_img: tf.Tensor) -> np.ndarray:
         processed_img = processed_img.numpy().astype("uint8")
-        resized_img = reshape_pad_crop([processed_img], format_img=ifsp_settings.CROP_IMG_SIZE)
+        resized_img = padded_resize(processed_img, target_size=ifsp_settings.CROP_IMG_SIZE)
         return resized_img
     dataset = dataset.map(resize, num_parallel_calls=tf.data.AUTOTUNE)
 

@@ -10,6 +10,7 @@ from google.cloud import storage
 from tensorflow import keras
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
+from baitwatch.logger import logger
 from baitwatch.settings import cloud_settings, model_settings
 
 
@@ -27,26 +28,28 @@ def save_model(
             Defaults to model_settings.MODEL_LOCAL_PATH.
     """
     model_path = path / model_type.value
-    print(f"⏳ Saving model locally at {model_path}...")
+    logger.info(f"[SAVE] Saving model locally at {model_path}...")
 
     if not model_path.exists():
         model_path.mkdir(parents=True)
 
     timestamp = strftime("%Y%m%d-%H%M%S")
     model_name = f"model_{timestamp}.keras"
+    logger.debug(f"Saving model with name: {model_name}")
     model.save(model_path / model_name)
 
-    print(f"✅ Model {model_name} saved locally at {model_path}")
+    logger.info(f"[SUCCESS] Model {model_name} saved locally at {model_path}")
 
     if model_settings.MODEL_TARGET == "gcs":
-        print("⏳ Saving model on GCS...")
+        logger.info("[SAVE] Saving model on GCS...")
 
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
         blob = bucket.blob(f"models/{model_type.value}/{model_name}")
+        logger.debug(f"Uploading to GCS: models/{model_type.value}/{model_name}")
         blob.upload_from_filename(model_path / model_name)
 
-        print("✅ Model saved to GCS")
+        logger.info("[SUCCESS] Model saved to GCS")
 
 
 def load_model(
@@ -70,7 +73,7 @@ def load_model(
         FileNotFoundError: If the model is not found.
         ValueError: If the model target is unknown.
     """
-    print(f"⏳ Loading model for {model_type.value}...")
+    logger.info(f"[LOAD] Loading model for {model_type.value}...")
     path /= model_type.value
 
     if model_settings.MODEL_TARGET == "local":
@@ -90,11 +93,12 @@ def load_model(
 
         if path / model_name not in models:
             raise FileNotFoundError(path / model_name)
+        logger.debug(f"Loading model from: {path / model_name}")
         model = keras.models.load_model(path / model_name)
-        print(f"✅ Model {model_name} loaded")
+        logger.info(f"[SUCCESS] Model {model_name} loaded")
 
     elif model_settings.MODEL_TARGET == "gcs":
-        print("⏳ Load latest model from GCS...")
+        logger.info("[LOAD] Load latest model from GCS...")
 
         client = storage.Client()
         # Don't get the bucket from client.bucket as rights can be different
@@ -116,11 +120,12 @@ def load_model(
             path.mkdir(parents=True)
 
         latest_model_path_to_save = path / latest_blob_name
+        logger.debug(f"Downloading model to: {latest_model_path_to_save}")
         latest_blob.download_to_filename(latest_model_path_to_save)
 
         model = keras.models.load_model(latest_model_path_to_save)
 
-        print(f"✅ Latest model downloaded from cloud storage {latest_blob_name}")
+        logger.info(f"[SUCCESS] Latest model downloaded from cloud storage {latest_blob_name}")
 
     else:
         # Unknown model target
