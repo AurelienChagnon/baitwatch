@@ -16,7 +16,7 @@ from baitwatch.infra.data import (
 )
 from baitwatch.infra.registry import load_model, save_model
 from baitwatch.models.augment import augment_ds
-from baitwatch.models.model_selector import get_compiled_model, get_preprocess, make_training_data
+from baitwatch.models.model_selector import get_compiled_model, make_training_data, preprocess
 from baitwatch.models.training import (
     get_class_weights,
     get_classification_report,
@@ -70,10 +70,9 @@ def preprocess_data(task_type: FishDetectionEnum) -> None:
     )
 
     print("   Preprocessing images...")
-    processor = make_training_data(task_type)
-    x_train, y_train = processor(imgs_train, labels_train)
-    x_val, y_val = processor(imgs_val, labels_val)
-    x_test, y_test = processor(imgs_test, labels_test)
+    x_train, y_train = make_training_data(task_type, imgs_train, labels_train)
+    x_val, y_val = make_training_data(task_type, imgs_val, labels_val)
+    x_test, y_test = make_training_data(task_type, imgs_test, labels_test)
 
     print("💾 Saving preprocessed datasets...")
     task_path = dataset_settings.PROCESSED_DATA_PATH / task_type.value
@@ -183,7 +182,7 @@ def detect_fishes(
     """
     # Perform preprocessing
     image_ds = Dataset.from_tensors(np.array(image))
-    image_preprocessed = get_preprocess(detection_type)(image_ds)
+    image_preprocessed = preprocess(detection_type, image_ds)
     # Perform detection
     # DO NOT MODIFY, model expects a batch size
     results = model.predict(image_preprocessed.batch(1))

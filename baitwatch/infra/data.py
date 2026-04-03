@@ -9,7 +9,7 @@ from typing import Literal
 from google.cloud import storage
 from google.cloud.storage import transfer_manager
 from PIL import Image
-from tensorflow import Tensor, concat, keras
+from tensorflow import concat, keras
 from tensorflow.data import Dataset
 
 from baitwatch.settings import DATASET_NAME, cloud_settings, dataset_settings
