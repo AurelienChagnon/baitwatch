@@ -58,7 +58,7 @@ def download_data() -> None:
 
 
 def preprocess_data(task_type: FishDetectionEnum) -> None:
-    """Process the data locally and save them."""
+    """Process the data locally and save them for training purposes."""
     print("🔧 Starting dataset preprocessing...")
     task_type = FishDetectionEnum(task_type)
     imgs_train, imgs_val, imgs_test = get_images(

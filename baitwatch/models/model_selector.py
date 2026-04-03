@@ -6,7 +6,6 @@ Manage the different models for fish detection with unification of interfaces.
 from collections.abc import Callable
 
 import keras
-import numpy as np
 from tensorflow.data import Dataset
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
@@ -30,7 +29,7 @@ __all__ = [
 
 def make_training_data(
         detection_type: FishDetectionEnum,
-) -> Callable[[Dataset, Dataset], tuple[Dataset, np.ndarray]]:
+) -> Callable[[Dataset, Dataset], tuple[Dataset, Dataset]]:
     """Return the training data pipeline for the given detection type.
 
     Args:
