@@ -11,8 +11,7 @@ from baitwatch.infra.data import (
     get_images,
     get_labels,
     get_processed_dataset,
-    save_augmented_to_local,
-    save_image_dataset,
+    save_dataset_by_label,
 )
 from baitwatch.infra.registry import load_model, save_model
 from baitwatch.logger import logger
@@ -77,9 +76,9 @@ def preprocess_data(task_type: FishDetectionEnum) -> None:
 
     logger.info("[SAVE] Saving preprocessed datasets...")
     task_path = dataset_settings.PROCESSED_DATA_PATH / task_type.value
-    save_image_dataset(x_train, task_path / "train", labels=y_train)
-    save_image_dataset(x_val, task_path / "val", labels=y_val)
-    save_image_dataset(x_test, task_path / "test", labels=y_test)
+    save_dataset_by_label(x_train, task_path / "train", labels=y_train)
+    save_dataset_by_label(x_val, task_path / "val", labels=y_val)
+    save_dataset_by_label(x_test, task_path / "test", labels=y_test)
 
     logger.info("[SUCCESS] Preprocessing completed and saved")
 
@@ -219,11 +218,12 @@ def save_augmented() -> None:
 
     # Save
     logger.info("Saving augmented training data...")
-    save_augmented_to_local(x_train, FishDetectionEnum.IFSP.value, 'train')
+    path = dataset_settings.PROCESSED_DATA_PATH / f'{FishDetectionEnum.IFSP.value}_augmented'
+    save_dataset_by_label(x_train, path / "train")
 
     # Save non-augmented val and test for easier management during training
     logger.info("Saving validation and test data...")
-    save_augmented_to_local(x_val, FishDetectionEnum.IFSP.value, 'val')
+    save_dataset_by_label(x_val, path / "val")
+    save_dataset_by_label(x_test, path / "test")
 
-    save_augmented_to_local(x_test, FishDetectionEnum.IFSP.value, 'test')
     logger.info("[SUCCESS] Augmented datasets saved successfully")

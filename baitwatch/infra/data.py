@@ -10,7 +10,7 @@ from typing import Literal
 from google.cloud import storage
 from google.cloud.storage import transfer_manager
 from PIL import Image
-from tensorflow import concat, keras
+from tensorflow import keras
 from tensorflow.data import Dataset
 
 from baitwatch.logger import logger
@@ -155,48 +155,6 @@ def _clear_directory(path: Path) -> None:
             item.unlink()
 
 
-def save_image_dataset(
-        dataset: Dataset,
-        path: Path,
-        labels: Dataset | None = None,
-) -> None:
-    """Save the dataset as JPEG images.
-
-    If labels is passed, the images are separated into different folder according
-    to the labels.
-    Labels MUST BE ordered accordingly to associate correctly the image in dataset.
-
-    Args:
-        dataset (Dataset): Dataset to save.
-        path (Path): Path to save dataset into.
-        labels (Dataset | None, optional): Labels to separate dataset into. Defaults to None.
-    """
-    if not path.exists():
-        path.mkdir(parents=True)
-
-    if list(path.iterdir()):
-        logger.warning(f"Path {path} not empty, clearing contents before saving.")
-        _clear_directory(path)
-
-    if labels is None:
-        # Dataset are not loaded files, len(dataset) would only return 1
-        len_dataset = dataset.cardinality().numpy()
-        # Create an array of empty strings so no label directories are needed
-        labels = Dataset.from_tensor_slices(["" for _ in range(len_dataset)])
-    else:
-        # Create directories for each label
-        for label in labels.unique():
-            label_path = path / str(label.numpy())
-            if not label_path.exists():
-                label_path.mkdir(parents=True)
-
-    for index, (tensor, label) in enumerate(zip(dataset, labels, strict=True)):
-        # Cast into numpay array
-        numpy_image = tensor.numpy().astype("uint8")
-        image = Image.fromarray(numpy_image)
-        image.save(path / str(label.numpy()) / f"img_{index}.jpg")
-
-
 def get_processed_dataset(
         path: Path = dataset_settings.PROCESSED_DATA_PATH,
         *,
@@ -290,33 +248,48 @@ def dl_augmented_images(
         logger.info("[SUCCESS] You already have the augmented data !")
 
 
-def save_augmented_to_local(dataset: Dataset, model_name: str, split: str) -> None:
-    """Applies data augmentation to a dataset and saves the results to local storage.
+def save_dataset_by_label(
+        dataset: Dataset,
+        path: Path,
+        labels: Dataset | None = None,
+) -> None:
+    """Save a dataset with images and labels, organizing images by label.
 
-    This function processes an input dataset using a flat_map transformation to
-    generate multiple augmented variations (images and labels) for every original
-    sample. It then collects these variations into memory and exports them as
-    individual files using the project's standardized saving utility.
+    Images are saved into subdirectories named after their label values (0, 1, 2, etc.).
+    Each image is saved as a JPEG file with a sequential index.
 
     Args:
-        dataset (Dataset): The input dataset containing (image, label) pairs.
-            It is recommended to unbatch the dataset before passing it to this function.
-        model_name (str): The name of the model/species task (e.g., 'ifsp', 'fonf'),
-            used to define the output directory.
-        split (str): The dataset split being processed (e.g., 'train', 'val', or 'test').
+        dataset (Dataset): Dataset containing (image, label) tuples or image only (use
+        param labels).
+        path (Path): Root path where label subdirectories will be created.
+        labels (Dataset | None, optional): Dataset containing labels. Defaults to None.
     """
-    logger.debug(f"Processing augmented dataset for {model_name}/{split}")
-    images = []
-    labels = []
-    for img, lab in dataset:
-        images.append(img)
-        labels.append(lab)
+    if not path.exists():
+        path.mkdir(parents=True)
 
-    images = concat(images, axis=0)
-    labels = concat(labels, axis=0)
+    if list(path.iterdir()):
+        logger.warning(f"Path {path} not empty, clearing contents before saving.")
+        _clear_directory(path)
 
-    output_path = dataset_settings.PROCESSED_DATA_PATH / f'{model_name}_augmented' / split
-    logger.info(f"Saving {len(images)} augmented images to {output_path}")
-    save_image_dataset(Dataset.from_tensor_slices(images),
-                       output_path,
-                       labels=labels.numpy())
+    label_counters = {}
+
+    # When dataset does not contain labels, use labels param
+    iterable = zip(dataset, labels, strict=True) if labels is not None else dataset.unbatch()
+
+    for image, label in iterable:
+        label_value = label.numpy().astype("int")
+        label_dir = path / str(label_value)
+
+        if not label_dir.exists():
+            label_dir.mkdir(parents=True)
+            label_counters[label_value] = 0
+
+        if label_value not in label_counters:
+            label_counters[label_value] = 0
+
+        numpy_image = image.numpy().astype("uint8")
+        img = Image.fromarray(numpy_image)
+        img.save(label_dir / f"img_{label_counters[label_value]}.jpg")
+        label_counters[label_value] += 1
+
+    logger.info(f"Saved dataset to {path} with {len(label_counters)} label directories")
