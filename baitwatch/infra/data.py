@@ -3,6 +3,7 @@
 This module handles the data loading and saving.
 """
 
+import shutil
 from pathlib import Path
 from typing import Literal
 
@@ -13,7 +14,7 @@ from tensorflow import concat, keras
 from tensorflow.data import Dataset
 
 from baitwatch.logger import logger
-from baitwatch.settings import DATASET_NAME, cloud_settings, dataset_settings
+from baitwatch.settings import DATASET_NAME, PROJECT_PATH, cloud_settings, dataset_settings
 
 
 def dl_data(
@@ -137,6 +138,23 @@ def get_labels(
     return labels_train, labels_val, labels_test
 
 
+def _clear_directory(path: Path) -> None:
+    """Clear all contents of a directory.
+
+    Args:
+        path (Path): Directory path to clear.
+    """
+    logger.debug(f"Clearing directory contents: {path}")
+    if not str(path.absolute()).startswith(str(PROJECT_PATH)):
+        logger.warning(f"Path {path} not in project, will not clear directory.")
+        return
+    for item in path.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+
+
 def save_image_dataset(
         dataset: Dataset,
         path: Path,
@@ -157,7 +175,8 @@ def save_image_dataset(
         path.mkdir(parents=True)
 
     if list(path.iterdir()):
-        logger.warning(f"Path {path} not empty, images will be rewritten.")
+        logger.warning(f"Path {path} not empty, clearing contents before saving.")
+        _clear_directory(path)
 
     if labels is None:
         # Dataset are not loaded files, len(dataset) would only return 1
