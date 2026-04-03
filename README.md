@@ -305,7 +305,7 @@ python -m baitwatch evaluate fonf
 python -m baitwatch report ifsp
 python -m baitwatch cycle fonf
 python -m baitwatch augment fonf
-python -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
+python -m baitwatch api --host 0.0.0.0 --port 8080 --reload
 ```
 
 Or if you are using `uv`
@@ -318,7 +318,7 @@ uv run -m baitwatch evaluate fonf
 uv run -m baitwatch report ifsp
 uv run -m baitwatch cycle fonf
 uv run -m baitwatch augment fonf
-uv run -m baitwatch.interfaces.api --host 0.0.0.0 --port 8080 --reload
+uv run -m baitwatch api --host 0.0.0.0 --port 8080 --reload
 ```
 
 ### API — `POST /detect-fishes/`

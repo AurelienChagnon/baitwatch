@@ -78,7 +78,7 @@ def augment(context: Context, dataset: str) -> None:
 def api(context: Context, host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> None:
     """Run the FastAPI server."""
     reload_flag = "--reload" if reload else ""
-    context.run(f"python -m baitwatch.interfaces.api --host {host} --port {port} {reload_flag}")
+    context.run(f"python -m baitwatch api --host {host} --port {port} {reload_flag}")
 
 
 # ----------------------------------
