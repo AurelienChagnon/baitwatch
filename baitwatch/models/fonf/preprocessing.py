@@ -2,6 +2,7 @@
 
 from tensorflow.data import Dataset
 
+from baitwatch.logger import logger
 from baitwatch.models.preprocessing import preprocess_ds, resize_ds
 from baitwatch.settings import fonf_settings
 
@@ -19,8 +20,10 @@ def make_training_data_fonf(
     Returns:
         tuple[Dataset, Dataset]: Tuple of preprocessed images and targets
     """
+    logger.debug("Starting FONF training data preparation")
     x = preprocess_fonf(imgs)
     y = to_binary_fonf(labels)
+    logger.info("FONF training data prepared successfully")
     return x, y
 
 
@@ -36,6 +39,7 @@ def preprocess_fonf(dataset: Dataset) -> Dataset:
     Returns:
         Dataset: Preprocessed dataset
     """
+    logger.debug("Preprocessing dataset for FONF model")
     dataset = preprocess_ds(dataset)
     dataset = resize_ds(dataset, img_size=fonf_settings.PREPROCESS_IMG_SIZE)
     return dataset

@@ -33,45 +33,45 @@ def reinstall_package(context: Context) -> None:
 @task
 def download_data(context: Context) -> None:
     """Download data for the project."""
-    context.run("python -m baitwatch.main download-data")
+    context.run("python -m baitwatch download-data")
 
 
 @task
 def preprocess(context: Context, dataset: str) -> None:
     """Preprocess data for specified dataset."""
-    context.run(f"python -m baitwatch.main preprocess {dataset}")
+    context.run(f"python -m baitwatch preprocess {dataset}")
 
 
 @task
 def train(context: Context, dataset: str, augmented: bool = False) -> None:
     """Train model on specified dataset."""
     augmented_flag = "--augmented" if augmented else ""
-    context.run(f"python -m baitwatch.main train {dataset} {augmented_flag}")
+    context.run(f"python -m baitwatch train {dataset} {augmented_flag}")
 
 
 @task
 def evaluate(context: Context, dataset: str) -> None:
     """Evaluate model on specified dataset."""
-    context.run(f"python -m baitwatch.main evaluate {dataset}")
+    context.run(f"python -m baitwatch evaluate {dataset}")
 
 
 @task
 def report(context: Context, dataset: str, model_name: str = "") -> None:
     """Generate classification report for specified dataset."""
     model_flag = f"--model-name {model_name}" if model_name else ""
-    context.run(f"python -m baitwatch.main report {dataset} {model_flag}")
+    context.run(f"python -m baitwatch report {dataset} {model_flag}")
 
 
 @task
 def cycle(context: Context, dataset: str) -> None:
     """Run complete cycle for specified dataset."""
-    context.run(f"python -m baitwatch.main cycle {dataset}")
+    context.run(f"python -m baitwatch cycle {dataset}")
 
 
 @task
 def save_augmented(context: Context) -> None:
     """Save augmented IFSP dataset."""
-    context.run("python -m baitwatch.main save-augmented")
+    context.run("python -m baitwatch save-augmented")
 
 
 @task

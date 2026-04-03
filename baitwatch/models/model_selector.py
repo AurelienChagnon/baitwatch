@@ -8,6 +8,7 @@ import keras
 from tensorflow.data import Dataset
 
 from baitwatch.domains.fish_detection import FishDetectionEnum
+from baitwatch.logger import logger
 from baitwatch.models.fonf.model import build_model as fonf_model
 from baitwatch.models.fonf.model import compile_model as fonf_compile_model
 from baitwatch.models.fonf.model import get_optimizer as fonf_optimizer
@@ -46,6 +47,7 @@ def make_training_data(
         FishDetectionEnum.IFSP: make_training_data_ifsp,
     }
 
+    logger.debug(f"Making training data for detection type: {detection_type}")
     return detection_to_processed_imgs[detection_type](images, labels)
 
 
@@ -64,6 +66,7 @@ def preprocess(detection_type: FishDetectionEnum, images: Dataset) -> Dataset:
         FishDetectionEnum.IFSP: preprocess_ifsp
     }
 
+    logger.debug(f"Preprocessing images for detection type: {detection_type}")
     return detection_to_process_pipeline[detection_type](images)
 
 
@@ -81,6 +84,7 @@ def build_model(detection_type: FishDetectionEnum) -> keras.models.Model:
         FishDetectionEnum.IFSP: ifsp_model,
     }
     # Only build when requested, also rebuild when requested
+    logger.debug(f"Building model for detection type: {detection_type}")
     return detection_to_model_builder[detection_type]()
 
 
@@ -113,6 +117,9 @@ def get_compiled_model(detection_type: FishDetectionEnum) -> keras.models.Model:
         FishDetectionEnum.FONF: fonf_compile_model,
         FishDetectionEnum.IFSP: ifsp_compile_model,
     }
+    logger.debug(f"Compiling model for detection type: {detection_type}")
     model = build_model(detection_type)
     optimizer = get_optimizer(detection_type)
-    return detection_to_model_compile[detection_type](model, optimizer)
+    compiled_model = detection_to_model_compile[detection_type](model, optimizer)
+    logger.info(f"Model compiled successfully for {detection_type}")
+    return compiled_model

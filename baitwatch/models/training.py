@@ -10,6 +10,8 @@ from tensorflow import keras
 from tensorflow.data import Dataset
 from tensorflow.keras.callbacks import EarlyStopping
 
+from baitwatch.logger import logger
+
 
 def train_model(model: keras.Model,  # noqa: PLR0913
                 *train_data: np.ndarray | Dataset,
@@ -39,6 +41,11 @@ def train_model(model: keras.Model,  # noqa: PLR0913
         history: training history (loss, accuracy, etc.).
         model: the trained model.
     """
+    logger.info(f"Starting model training with batch_size={batch_size}, epochs={epochs},"
+                f" patience={patience}")
+    if class_weights:
+        logger.debug(f"Using class weights: {class_weights}")
+
     early_stopping = EarlyStopping(
         monitor='val_loss',
         patience=patience,
@@ -53,6 +60,13 @@ def train_model(model: keras.Model,  # noqa: PLR0913
         callbacks=[early_stopping],
         class_weight=class_weights,
     )
+
+    final_epoch = len(history.history['loss'])
+    final_loss = history.history['loss'][-1]
+    final_val_loss = history.history['val_loss'][-1]
+    logger.info(f"Training completed after {final_epoch} epochs")
+    logger.info(f"Final training loss: {final_loss:.4f}, validation loss: {final_val_loss:.4f}")
+
     return history, model
 
 
@@ -75,6 +89,7 @@ def get_classification_report(
     Returns:
         classification report as strings (to be printed)
     """
+    logger.debug("Generating classification report")
     if isinstance(validation_data, Dataset):
         # Need to extract y_val as np.array for sklearn classification report
         validation_images = []
@@ -94,8 +109,10 @@ def get_classification_report(
         x_val, y_val = validation_data
 
     # Model returns a probability of class 1 => round
+    logger.debug(f"Predicting on {len(x_val)} validation samples")
     y_pred = np.round(model.predict(x_val), 0)
 
+    logger.info("Classification report generated successfully")
     return classification_report(y_val, y_pred)
 
 
@@ -105,7 +122,7 @@ def plot_history(history: keras.callbacks.History) -> None:
     Args:
         history : history returned by model.fit()
     """
-    print("📊 Generating training curves...")
+    logger.info("[PLOT] Generating training curves...")
 
     _, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -131,7 +148,7 @@ def plot_history(history: keras.callbacks.History) -> None:
     plt.tight_layout()
     plt.show()
 
-    print("✅ Curves displayed")
+    logger.info("[SUCCESS] Curves displayed")
 
 
 def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
@@ -144,6 +161,7 @@ def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
     Returns:
         dict: Class weights
     """
+    logger.debug("Computing class weights from dataset")
     # Extract class labels
     class_labels = []
     for _, labels in dataset.unbatch():
@@ -155,4 +173,6 @@ def get_class_weights(dataset: Dataset, encoded: bool = False) -> dict:
     counter = Counter(class_labels)
     max_count = float(max(counter.values()))
     class_weights = {class_id: max_count / count for class_id, count in counter.items()}
+    logger.info(f"Class distribution: {dict(counter)}")
+    logger.debug(f"Computed class weights: {class_weights}")
     return class_weights

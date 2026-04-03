@@ -81,7 +81,7 @@ select = [
     # flake8-builtin
     "A",
     # flake8-print
-#    "T",
+    "T",
     # flake8-log-format
     "G",
     # pylint

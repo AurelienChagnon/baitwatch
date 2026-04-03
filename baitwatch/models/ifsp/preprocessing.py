@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.data import Dataset
 
+from baitwatch.logger import logger
 from baitwatch.models.ifsp.bounding_box import extract_fish_bounding_boxes, padded_resize
 from baitwatch.models.preprocessing import preprocess_ds
 from baitwatch.settings import ifsp_settings
@@ -22,6 +23,7 @@ def make_training_data_ifsp(
     Returns:
         tuple[Dataset, Dataset]: Tuple of preprocessed images and targets
     """
+    logger.debug("Starting IFSP training data preparation")
     fish_bb = []
     fish_labels = []
     imgs = preprocess_ds(imgs)
@@ -34,6 +36,7 @@ def make_training_data_ifsp(
         fish_bb.extend(fishes_in_img)
         fish_labels.extend(associated_labels)
 
+    logger.info(f"Extracted {len(fish_bb)} fish bounding boxes for IFSP training")
     x = Dataset.from_tensor_slices(fish_bb)
     y = Dataset.from_tensor_slices(fish_labels)
 
@@ -52,6 +55,7 @@ def preprocess_ifsp(dataset: Dataset) -> Dataset:
     Returns:
         Dataset: Preprocessed dataset
     """
+    logger.debug("Preprocessing dataset for IFSP model")
     dataset = preprocess_ds(dataset)
 
     @tf.py_function(Tout=tf.uint8)  # 8bit image

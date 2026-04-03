@@ -12,6 +12,7 @@ from PIL import Image
 from tensorflow import concat, keras
 from tensorflow.data import Dataset
 
+from baitwatch.logger import logger
 from baitwatch.settings import DATASET_NAME, cloud_settings, dataset_settings
 
 
@@ -27,10 +28,10 @@ def dl_data(
     datadir_path = path / DATASET_NAME
 
     if datadir_path.is_dir() and list(datadir_path.iterdir()):
-        print("✅ Data already downloaded !")
+        logger.info("[SUCCESS] Data already downloaded !")
         return
 
-    print(f"✋ Loading data from {cloud_settings.BUCKET_NAME}...")
+    logger.info(f"[DOWNLOAD] Loading data from {cloud_settings.BUCKET_NAME}...")
     local_filename = path
 
     client = storage.Client()
@@ -42,12 +43,13 @@ def dl_data(
             prefix="training_data_species_grouped",
         )
     ]
+    logger.debug(f"Downloading {len(blobs)} files from bucket")
     transfer_manager.download_many_to_path(bucket,
                                            blobs,
                                            destination_directory=str(local_filename),
                                            skip_if_exists=True,
                                            )
-    print("✅ Data downloaded successfully !")
+    logger.info("[SUCCESS] Data downloaded successfully !")
 
 
 def get_images(
@@ -155,7 +157,7 @@ def save_image_dataset(
         path.mkdir(parents=True)
 
     if list(path.iterdir()):
-        print(f"Warning! Path {path} not empty, images will be rewritten.")
+        logger.warning(f"Path {path} not empty, images will be rewritten.")
 
     if labels is None:
         # Dataset are not loaded files, len(dataset) would only return 1
@@ -247,7 +249,7 @@ def dl_augmented_images(
     # ── Download if not available locally ────────────────────────
     if (not augmented_path.exists()
             or not [f for f in augmented_path.iterdir() if not f.name.startswith('.')]):
-        print("✋ Augmented data not found, downloading from bucket...")
+        logger.info("[DOWNLOAD] Augmented data not found, downloading from bucket...")
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
         blobs = [
@@ -257,15 +259,16 @@ def dl_augmented_images(
                 prefix="augmented_images",
             )
         ]
+        logger.debug(f"Downloading {len(blobs)} augmented files")
         transfer_manager.download_many_to_path(
             bucket,
             blobs,
             destination_directory=str(directory_path),
             skip_if_exists=True,
         )
-        print("✅ Augmented data downloaded !")
+        logger.info("[SUCCESS] Augmented data downloaded !")
     else:
-        print("✅ You already have the augmented data !")
+        logger.info("[SUCCESS] You already have the augmented data !")
 
 
 def save_augmented_to_local(dataset: Dataset, model_name: str, split: str) -> None:
@@ -283,6 +286,7 @@ def save_augmented_to_local(dataset: Dataset, model_name: str, split: str) -> No
             used to define the output directory.
         split (str): The dataset split being processed (e.g., 'train', 'val', or 'test').
     """
+    logger.debug(f"Processing augmented dataset for {model_name}/{split}")
     images = []
     labels = []
     for img, lab in dataset:
@@ -292,6 +296,8 @@ def save_augmented_to_local(dataset: Dataset, model_name: str, split: str) -> No
     images = concat(images, axis=0)
     labels = concat(labels, axis=0)
 
+    output_path = dataset_settings.PROCESSED_DATA_PATH / f'{model_name}_augmented' / split
+    logger.info(f"Saving {len(images)} augmented images to {output_path}")
     save_image_dataset(Dataset.from_tensor_slices(images),
-                       dataset_settings.PROCESSED_DATA_PATH / f'{model_name}_augmented' / split,
+                       output_path,
                        labels=labels.numpy())
