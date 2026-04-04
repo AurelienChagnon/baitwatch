@@ -388,14 +388,33 @@ curl -X POST "http://localhost:8000/api/v1/fish/detect-fishes/" \
      -F "image_file=@path/to/image.jpg"
 ```
 
+**Response when fish is detected:**
+
 ```json
 {
-  "probability": 0.97,
-  "class_id": 1
+  "detection_type": "fonf",
+  "prediction": "fish",
+  "confidence": 0.97,
+  "class_id": 1,
+  "class_name": null,
+  "common_name": null
 }
 ```
 
-> For FONF: `class_id` is `1` (fish) or `0` (no fish).
+**Response when no fish is detected:**
+
+```json
+{
+  "detection_type": "fonf",
+  "prediction": "no_fish",
+  "confidence": 0.89,
+  "class_id": 0,
+  "class_name": null,
+  "common_name": null
+}
+```
+
+> For FONF: `prediction` is either `"fish"` or `"no_fish"`. The `confidence` score indicates how certain the model is about its prediction.
 
 **Example — IFSP (species identification):**
 
@@ -407,12 +426,27 @@ curl -X POST "http://localhost:8000/api/v1/fish/detect-fishes/" \
 
 ```json
 {
-  "probability": 0.84,
-  "class_id": 6
+  "detection_type": "ifsp",
+  "prediction": "Scorpaeniformes",
+  "confidence": 0.84,
+  "class_id": 6,
+  "class_name": "Scorpaeniformes",
+  "common_name": "Scorpionfish & flatheads"
 }
 ```
 
-> For IFSP: `class_id` maps to the predicted species class (e.g. `6` → `Scorpaeniformes`). Refer to the [Species Classes](#species-classes) table for the full class ID mapping.
+> For IFSP: The response includes both the scientific/taxonomic name (`class_name`) and the common name (`common_name`) of the identified species. The `confidence` score indicates the model's certainty. Refer to the [Species Classes](#species-classes) table for all possible species.
+
+**Response Fields:**
+
+| Field            | Type    | Description                                                          |
+|------------------|---------|----------------------------------------------------------------------|
+| `detection_type` | string  | Type of detection performed (`"fonf"` or `"ifsp"`)                  |
+| `prediction`     | string  | Human-readable prediction (e.g., `"fish"`, `"Scorpaeniformes"`)     |
+| `confidence`     | float   | Confidence score between 0.0 and 1.0                                 |
+| `class_id`       | integer | Numeric class identifier (0-1 for FONF, 0-7 for IFSP)                |
+| `class_name`     | string  | Scientific/taxonomic name (IFSP only, `null` for FONF)               |
+| `common_name`    | string  | Common name in plain English (IFSP only, `null` for FONF)            |
 
 **Error Response Example:**
 

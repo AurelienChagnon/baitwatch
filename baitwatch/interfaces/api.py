@@ -49,6 +49,48 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
     "/detect-fishes/",
     status_code=status.HTTP_200_OK,
     responses={
+        200: {
+            "description": "Successful detection",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "fonf_fish_detected": {
+                            "summary": "FONF - Fish detected",
+                            "value": {
+                                "detection_type": "fonf",
+                                "prediction": "fish",
+                                "confidence": 0.97,
+                                "class_id": 1,
+                                "class_name": None,
+                                "common_name": None
+                            }
+                        },
+                        "fonf_no_fish": {
+                            "summary": "FONF - No fish detected",
+                            "value": {
+                                "detection_type": "fonf",
+                                "prediction": "no_fish",
+                                "confidence": 0.89,
+                                "class_id": 0,
+                                "class_name": None,
+                                "common_name": None
+                            }
+                        },
+                        "ifsp_species": {
+                            "summary": "IFSP - Species identified",
+                            "value": {
+                                "detection_type": "ifsp",
+                                "prediction": "Scorpaeniformes",
+                                "confidence": 0.84,
+                                "class_id": 6,
+                                "class_name": "Scorpaeniformes",
+                                "common_name": "Scorpionfish & flatheads"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         400: {
             "description": "Bad Request - Invalid file type or file too large",
             "content": {
@@ -159,7 +201,7 @@ async def detect(
     logger.info(f"Running fish detection with model for {detection_type.value}")
     try:
         results = detect_fishes(model, detection_type, image)
-        prediction_result = PredictionResult.from_predict_result(results)
+        prediction_result = PredictionResult.from_predict_result(results, detection_type.value)
     except Exception as e:
         logger.error(f"Error during fish detection: {e}")
         raise HTTPException(
