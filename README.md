@@ -160,9 +160,7 @@ flowchart TD
     E --> G[(models/fonf/)]
     F --> H[(models/ifsp/)]
 
-    G --> I[4. FastAPI
-POST /fish/detect-fishes/
-detection_type: fonf / ifsp]
+    G --> I[4. FastAPI POST /fish/detect-fishes/?detection_type=fonf/ifsp]
     H --> I
 ```
 
