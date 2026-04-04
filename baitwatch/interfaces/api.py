@@ -118,7 +118,8 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
             },
         },
         500: {
-            "description": "Internal Server Error - Model not available for the requested detection type",
+            "description":
+                "Internal Server Error - Model not available for the requested detection type",
             "content": {
                 "application/json": {
                     "example": {"detail": "Model not available for detection type: fonf"}

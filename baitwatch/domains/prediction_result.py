@@ -3,7 +3,6 @@
 import numpy as np
 from pydantic import BaseModel, Field
 
-
 # Species mapping for IFSP (Individual Fish Species Prediction)
 SPECIES_MAPPING = {
     0: {"name": "Carcharhiniformes", "common_name": "Ground sharks"},

@@ -13,8 +13,8 @@ from tensorflow.keras.callbacks import EarlyStopping
 from baitwatch.logger import logger
 
 
-def train_model(
-    model: keras.Model,  # noqa: PLR0913
+def train_model(  # noqa: PLR0913
+    model: keras.Model,
     *train_data: np.ndarray | Dataset,
     validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
     batch_size: int = 32,
