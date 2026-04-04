@@ -13,14 +13,15 @@ from tensorflow.keras.callbacks import EarlyStopping
 from baitwatch.logger import logger
 
 
-def train_model(model: keras.Model,  # noqa: PLR0913
-                *train_data: np.ndarray | Dataset,
-                validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
-                batch_size: int = 32,
-                epochs: int = 50,
-                patience: int = 5,
-                class_weights: dict | None = None,
-                ) -> tuple[keras.callbacks.History, keras.Model]:
+def train_model(  # noqa: PLR0913
+    model: keras.Model,
+    *train_data: np.ndarray | Dataset,
+    validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
+    batch_size: int = 32,
+    epochs: int = 50,
+    patience: int = 5,
+    class_weights: dict | None = None,
+) -> tuple[keras.callbacks.History, keras.Model]:
     """Trains the model and returns the training history and the trained model.
 
     Usage:
@@ -41,15 +42,15 @@ def train_model(model: keras.Model,  # noqa: PLR0913
         history: training history (loss, accuracy, etc.).
         model: the trained model.
     """
-    logger.info(f"Starting model training with batch_size={batch_size}, epochs={epochs},"
-                f" patience={patience}")
+    logger.info(
+        f"Starting model training with batch_size={batch_size}, epochs={epochs},"
+        f" patience={patience}"
+    )
     if class_weights:
         logger.debug(f"Using class weights: {class_weights}")
 
     early_stopping = EarlyStopping(
-        monitor='val_loss',
-        patience=patience,
-        restore_best_weights=True
+        monitor="val_loss", patience=patience, restore_best_weights=True
     )
 
     history = model.fit(
@@ -61,9 +62,9 @@ def train_model(model: keras.Model,  # noqa: PLR0913
         class_weight=class_weights,
     )
 
-    final_epoch = len(history.history['loss'])
-    final_loss = history.history['loss'][-1]
-    final_val_loss = history.history['val_loss'][-1]
+    final_epoch = len(history.history["loss"])
+    final_loss = history.history["loss"][-1]
+    final_val_loss = history.history["val_loss"][-1]
     logger.info(f"Training completed after {final_epoch} epochs")
     logger.info(f"Final training loss: {final_loss:.4f}, validation loss: {final_val_loss:.4f}")
 
@@ -71,8 +72,8 @@ def train_model(model: keras.Model,  # noqa: PLR0913
 
 
 def get_classification_report(
-        model: keras.Model,
-        validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
+    model: keras.Model,
+    validation_data: tuple[np.ndarray, np.ndarray] | Dataset,
 ) -> str:
     """Return classification report based on given validation data and model.
 
@@ -127,24 +128,24 @@ def plot_history(history: keras.callbacks.History) -> None:
     _, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # ── Accuracy ─────────────────────────────────────────
-    axes[0].plot(history.history['accuracy'], label='Train')      # train curve
-    axes[0].plot(history.history['val_accuracy'], label='Validation')  # val curve
-    axes[0].set_title('Accuracy')
-    axes[0].set_xlabel('Epoch')
-    axes[0].set_ylabel('Accuracy')
+    axes[0].plot(history.history["accuracy"], label="Train")  # train curve
+    axes[0].plot(history.history["val_accuracy"], label="Validation")  # val curve
+    axes[0].set_title("Accuracy")
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Accuracy")
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
 
     # ── Loss ─────────────────────────────────────────────
-    axes[1].plot(history.history['loss'], label='Train')          # train curve
-    axes[1].plot(history.history['val_loss'], label='Validation')     # val curve
-    axes[1].set_title('Loss')
-    axes[1].set_xlabel('Epoch')
-    axes[1].set_ylabel('Loss')
+    axes[1].plot(history.history["loss"], label="Train")  # train curve
+    axes[1].plot(history.history["val_loss"], label="Validation")  # val curve
+    axes[1].set_title("Loss")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Loss")
     axes[1].legend()
     axes[1].grid(True, alpha=0.3)
 
-    plt.suptitle('Training Progress', fontsize=14)
+    plt.suptitle("Training Progress", fontsize=14)
     plt.tight_layout()
     plt.show()
 

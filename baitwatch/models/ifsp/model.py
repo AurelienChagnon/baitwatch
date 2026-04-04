@@ -87,9 +87,7 @@ def build_model() -> keras.models.Model:
     x = layers.Flatten()(x)  # aplatit en 1D
     x = layers.Dense(256, activation="relu")(x)
     x = layers.Dropout(0.1)(x)
-    x = layers.Dense(64, activation="relu")(
-        x
-    )
+    x = layers.Dense(64, activation="relu")(x)
 
     # Output layer
     outputs = layers.Dense(8, "softmax")(x)
@@ -110,9 +108,7 @@ def get_optimizer() -> keras.optimizers.Optimizer:
     return optimizer
 
 
-def compile_model(
-    model: keras.Model, optimizer: keras.optimizers.Optimizer
-) -> keras.Model:
+def compile_model(model: keras.Model, optimizer: keras.optimizers.Optimizer) -> keras.Model:
     """Compile IFSP model.
 
     Use Accuracy, Recall, Precision and AUC as metrics.

@@ -95,7 +95,7 @@ def train(model_type: FishDetectionEnum, augmented: bool = False) -> None:
     model_dir_path = f"{model_type.value}_augmented" if augmented else f"{model_type.value}"
     x_train_ds, x_val_ds, _ = get_processed_dataset(
         dataset_settings.PROCESSED_DATA_PATH / model_dir_path,
-        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type],
     )
 
     logger.info(f"[BUILD] Building model {model_type}...")
@@ -130,7 +130,7 @@ def evaluate(model_type: FishDetectionEnum) -> None:
 
     _, _, x_test_ds = get_processed_dataset(
         dataset_settings.PROCESSED_DATA_PATH / model_type.value,
-        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type]
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type],
     )
 
     results = model.evaluate(x_test_ds, return_dict=True)
@@ -145,8 +145,10 @@ def classification_report(model_type: FishDetectionEnum, model_name: str = "") -
     model_type = FishDetectionEnum(model_type)
     model = load_model(model_type, model_settings.MODEL_LOCAL_PATH, model_name=model_name)
 
-    _, x_val_ds, _ = get_processed_dataset(dataset_settings.PROCESSED_DATA_PATH / model_type.value,
-                                           image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type])
+    _, x_val_ds, _ = get_processed_dataset(
+        dataset_settings.PROCESSED_DATA_PATH / model_type.value,
+        image_size=DETECTION_TYPE_TO_IMG_SIZE[model_type],
+    )
 
     logger.info(f"\n{get_classification_report(model, x_val_ds)}")
 
@@ -168,9 +170,9 @@ def run_cycle(task_type: FishDetectionEnum) -> None:
 
 
 def detect_fishes(
-        model: Model,
-        detection_type: FishDetectionEnum,
-        image: ImageFile.ImageFile,
+    model: Model,
+    detection_type: FishDetectionEnum,
+    image: ImageFile.ImageFile,
 ) -> list[list[float]]:
     """Request a fish detection on given image, based on given model.
 
@@ -197,7 +199,7 @@ def detect_fishes(
 
 
 def augment(
-        detection_type: FishDetectionEnum,
+    detection_type: FishDetectionEnum,
 ) -> None:
     """Orchestrates the augmentation and local storage of the given dataset splits.
 
@@ -220,7 +222,7 @@ def augment(
         dataset_settings.PROCESSED_DATA_PATH / task_type.value,
         image_size=DETECTION_TYPE_TO_IMG_SIZE[task_type],
         label_mode="int",  # Need int to save into 0, 1, ... folders (tensor otherwise)
-        )
+    )
 
     # Augment images, only need train
     logger.info("Augmenting training dataset...")
@@ -228,7 +230,7 @@ def augment(
 
     # Save
     logger.info("Saving augmented training data...")
-    path = dataset_settings.PROCESSED_DATA_PATH / f'{task_type.value}_augmented'
+    path = dataset_settings.PROCESSED_DATA_PATH / f"{task_type.value}_augmented"
     save_dataset_by_label(x_train, path / "train")
 
     # Save non-augmented val and test for easier management during training

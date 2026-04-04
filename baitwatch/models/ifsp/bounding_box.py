@@ -6,9 +6,9 @@ import tensorflow as tf
 
 
 def extract_fish_bounding_boxes(
-        image: tf.Tensor,
-        label: tf.Tensor,
-        target_size: tuple[int, int],
+    image: tf.Tensor,
+    label: tf.Tensor,
+    target_size: tuple[int, int],
 ) -> tuple[list[np.ndarray], list[int]]:
     """Extracts fishes from image using bounding box coordinates in associated YOLO label.
 
@@ -46,8 +46,10 @@ def extract_fish_bounding_boxes(
         bb_width = float(parts[3]) * width
         bb_height = float(parts[4]) * height
         bounding_box = image.numpy()[
-            int(bb_center_y - bb_height / 2): int(bb_center_y + bb_height / 2) + 1,
-            int(bb_center_x - bb_width / 2): int(bb_center_x + bb_width / 2) + 1, :]
+            int(bb_center_y - bb_height / 2) : int(bb_center_y + bb_height / 2) + 1,
+            int(bb_center_x - bb_width / 2) : int(bb_center_x + bb_width / 2) + 1,
+            :,
+        ]
         padded_fish = padded_resize(bounding_box, target_size)
         cropped_fishes.append(padded_fish)
         labels.append(class_id)
@@ -72,14 +74,15 @@ def padded_resize(image: np.ndarray, target_size: tuple[int, int]) -> np.ndarray
     img_resize = cv.resize(
         img_proc,
         (int(img_proc.shape[1] / ratio), int(img_proc.shape[0] / ratio)),
-        interpolation=cv.INTER_LINEAR
+        interpolation=cv.INTER_LINEAR,
     )
 
-    padded_img = tf.image.pad_to_bounding_box(img_resize,
-                                              height - img_resize.shape[0],
-                                              width - img_resize.shape[1],
-                                              height,
-                                              width,
-                                              )
+    padded_img = tf.image.pad_to_bounding_box(
+        img_resize,
+        height - img_resize.shape[0],
+        width - img_resize.shape[1],
+        height,
+        width,
+    )
 
     return padded_img

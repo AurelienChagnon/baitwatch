@@ -1,12 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "baitwatch"
 version = "0.1.0"
 description = "CNN models for fish detection and species identification in BRUVs video."
+authors = [
+    {name = "Aurelien Chagnon", email = "mra.chagnon@gmail.com"},
+]
+maintainers = [
+    {name = "Aurelien Chagnon", email = "mra.chagnon@gmail.com"},
+]
 requires-python = ">=3.11"
-license = "MIT"
+license = {text = "MIT"}
 readme = "README.md"
-repository = "https://github.com/AurelienChagnon/baitwatch.git"
-keywords    = ["Deep Learning", "Computer Vision", "Fish Detection", "BRUV"]
+keywords = ["Deep Learning", "Computer Vision", "Fish Detection", "BRUV"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
@@ -16,12 +25,12 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Image Processing",
-    "Typing :: Typed"
+    "Typing :: Typed",
 ]
 dependencies = [
     "fastapi>=0.135.1",
@@ -38,9 +47,20 @@ dependencies = [
     "uvicorn>=0.42.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/AurelienChagnon/baitwatch"
+Repository = "https://github.com/AurelienChagnon/baitwatch.git"
+Issues = "https://github.com/AurelienChagnon/baitwatch/issues"
+
+[project.scripts]
+baitwatch = "baitwatch.__main__:main"
+
 [dependency-groups]
 dev = [
+    "mypy>=1.20.0",
+    "ruff>=0.15.9",
     "tensorflow>=2.21.0",
+    "types-tensorflow>=2.18.0.20260402",
 ]
 prod = [
     "tensorflow-cpu>=2.21.0",
@@ -102,8 +122,8 @@ select = [
     "FAST",
     # Numpy
     "NPY",
-    # Pandas
-    "PD",
+    # Maccabe
+    "C",
 ]
 ignore = [
     # Allow Any type

@@ -9,6 +9,7 @@ class FishDetectionEnum(StrEnum):
     FONF: Fish Or No Fish
     IFSP = Individual Fish Species Prediction
     """
+
     FONF = "fonf"
     IFSP = "ifsp"
     # TODO: add support for WAW

@@ -64,6 +64,7 @@ def preprocess_ds(dataset: tf.data.Dataset) -> tf.data.Dataset:
     Returns:
         tf.data.Dataset: Dataset of processed images
     """
+
     # To be applied to a tf.data.Dataset using 'map',
     # see https://www.tensorflow.org/api_docs/python/tf/py_function
     @tf.py_function(Tout=tf.uint8)  # 8bit image
@@ -81,8 +82,8 @@ def preprocess_ds(dataset: tf.data.Dataset) -> tf.data.Dataset:
 
 
 def resize_ds(
-        dataset: tf.data.Dataset,
-        img_size: tuple[int, int],
+    dataset: tf.data.Dataset,
+    img_size: tuple[int, int],
 ) -> tf.data.Dataset:
     """Resize images in dataset.
 
@@ -93,13 +94,12 @@ def resize_ds(
     Returns:
         tf.data.Dataset: Dataset of resized images
     """
+
     @tf.py_function(Tout=tf.uint8)  # 8bit image
     def resize(processed_img: tf.Tensor) -> np.ndarray:
         processed_img = processed_img.numpy().astype("uint8")
         # Resize last in case it modifies too much for previous process
-        resized_img = cv.resize(processed_img,
-                                img_size,
-                                interpolation=cv.INTER_LINEAR)
+        resized_img = cv.resize(processed_img, img_size, interpolation=cv.INTER_LINEAR)
         return resized_img
 
     return dataset.map(resize, num_parallel_calls=tf.data.AUTOTUNE)

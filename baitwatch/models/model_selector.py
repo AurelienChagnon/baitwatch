@@ -3,7 +3,6 @@
 Manage the different models for fish detection with unification of interfaces.
 """
 
-
 import keras
 from tensorflow.data import Dataset
 
@@ -28,9 +27,9 @@ __all__ = [
 
 
 def make_training_data(
-        detection_type: FishDetectionEnum,
-        images: Dataset,
-        labels: Dataset,
+    detection_type: FishDetectionEnum,
+    images: Dataset,
+    labels: Dataset,
 ) -> tuple[Dataset, Dataset]:
     """Call the training data pipeline for the given detection type.
 
@@ -63,7 +62,7 @@ def preprocess(detection_type: FishDetectionEnum, images: Dataset) -> Dataset:
     """
     detection_to_process_pipeline = {
         FishDetectionEnum.FONF: preprocess_fonf,
-        FishDetectionEnum.IFSP: preprocess_ifsp
+        FishDetectionEnum.IFSP: preprocess_ifsp,
     }
 
     logger.debug(f"Preprocessing images for detection type: {detection_type}")

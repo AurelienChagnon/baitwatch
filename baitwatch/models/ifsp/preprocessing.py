@@ -11,8 +11,8 @@ from baitwatch.settings import ifsp_settings
 
 
 def make_training_data_ifsp(
-        imgs: Dataset,
-        labels: Dataset,
+    imgs: Dataset,
+    labels: Dataset,
 ) -> tuple[Dataset, Dataset]:
     """Preprocess images and crop every fishes out of them.
 
@@ -29,9 +29,7 @@ def make_training_data_ifsp(
     imgs = preprocess_ds(imgs)
     for img, label in zip(imgs, labels, strict=True):
         fishes_in_img, associated_labels = extract_fish_bounding_boxes(
-            img,
-            label,
-            target_size=ifsp_settings.CROP_IMG_SIZE
+            img, label, target_size=ifsp_settings.CROP_IMG_SIZE
         )
         fish_bb.extend(fishes_in_img)
         fish_labels.extend(associated_labels)
@@ -63,6 +61,7 @@ def preprocess_ifsp(dataset: Dataset) -> Dataset:
         processed_img = processed_img.numpy().astype("uint8")
         resized_img = padded_resize(processed_img, target_size=ifsp_settings.CROP_IMG_SIZE)
         return resized_img
+
     dataset = dataset.map(resize, num_parallel_calls=tf.data.AUTOTUNE)
 
     return dataset

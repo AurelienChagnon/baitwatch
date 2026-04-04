@@ -30,6 +30,7 @@ def reinstall_package(context: Context) -> None:
 #        CORE TASKS
 # ----------------------------------
 
+
 @task
 def download_data(context: Context) -> None:
     """Download data for the project."""
@@ -84,6 +85,7 @@ def api(context: Context, host: str = "127.0.0.1", port: int = 8000, reload: boo
 # ----------------------------------
 #        CONVENIENCE TASKS
 # ----------------------------------
+
 
 @task
 def setup(context: Context) -> None:

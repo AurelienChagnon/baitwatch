@@ -8,8 +8,8 @@ from baitwatch.settings import fonf_settings
 
 
 def make_training_data_fonf(
-        imgs: Dataset,
-        labels: Dataset,
+    imgs: Dataset,
+    labels: Dataset,
 ) -> tuple[Dataset, Dataset]:
     """Transform dataset into training data for Fonf model.
 
@@ -57,4 +57,4 @@ def to_binary_fonf(y: Dataset) -> Dataset:
     Returns:
         Dataset: Dataset of binary labels
     """
-    return y.map(lambda x: 0 if x == b'' else 1)
+    return y.map(lambda x: 0 if x == b"" else 1)
