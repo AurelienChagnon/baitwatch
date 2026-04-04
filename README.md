@@ -160,7 +160,9 @@ flowchart TD
     E --> G[(models/fonf/)]
     F --> H[(models/ifsp/)]
 
-    G --> I[4. FastAPI\nPOST /detect-fishes/\ndetection_type: fonf / ifsp]
+    G --> I[4. FastAPI
+POST /fish/detect-fishes/
+detection_type: fonf / ifsp]
     H --> I
 ```
 
@@ -321,21 +323,69 @@ uv run -m baitwatch augment fonf
 uv run -m baitwatch api --host 0.0.0.0 --port 8080 --reload
 ```
 
-### API — `POST /detect-fishes/`
+### API Endpoints
 
-Both models are served through a single endpoint. The `detection_type` parameter selects which model to run.
+The API provides a RESTful interface with proper validation and error handling.
 
-| Parameter        | Type         | Values               | Description                 |
-|------------------|--------------|----------------------|-----------------------------|
-| `detection_type` | `string`     | `"fonf"` \| `"ifsp"` | Model to use for inference  |
-| `file`           | `image file` | `.jpg`, `.png`       | Underwater image to analyse |
+#### `GET /` — Root Endpoint
+
+Returns a welcome message.
+
+```bash
+curl http://localhost:8000/api/v1/
+```
+
+```json
+{
+  "message": "Welcome to Baitwatch API"
+}
+```
+
+#### `GET /ping/` — Health Check
+
+Returns a simple pong response for health monitoring.
+
+```bash
+curl http://localhost:8000/api/v1/ping/
+```
+
+```json
+["pong"]
+```
+
+#### `POST /fish/detect-fishes/` — Fish Detection
+
+Both models are served through a single endpoint under the `/fish` router. The `detection_type` parameter selects which model to run.
+
+**Parameters:**
+
+| Parameter        | Type         | Values               | Description                                      |
+|------------------|--------------|----------------------|--------------------------------------------------|
+| `detection_type` | `string`     | `"fonf"` \| `"ifsp"` | Model to use for inference                       |
+| `image_file`     | `file`       | JPEG, PNG, WebP      | Image file to analyze (max 10MB)                 |
+
+**Validation:**
+
+- **Content Type**: Only `image/jpeg`, `image/png`, and `image/webp` are accepted
+- **File Size**: Maximum 10MB
+- **Image Format**: Must be a valid, parseable image file
+
+**Response Codes:**
+
+| Code | Description                                                      |
+|------|------------------------------------------------------------------|
+| 200  | Success — returns prediction result                              |
+| 400  | Bad Request — invalid file type                                  |
+| 413  | Payload Too Large — file exceeds 10MB limit                      |
+| 422  | Unprocessable Entity — corrupted or invalid image data           |
+| 500  | Internal Server Error — model unavailable or detection failure   |
 
 **Example — FONF (fish / no fish):**
 
 ```bash
-curl -X POST "http://localhost:8000/detect-fishes/" \
+curl -X POST "http://localhost:8000/api/v1/fish/detect-fishes/" \
      -F "detection_type=fonf" \
-     -F "file=@path/to/image.jpg"
+     -F "image_file=@path/to/image.jpg"
 ```
 
 ```json
@@ -350,9 +400,9 @@ curl -X POST "http://localhost:8000/detect-fishes/" \
 **Example — IFSP (species identification):**
 
 ```bash
-curl -X POST "http://localhost:8000/detect-fishes/" \
+curl -X POST "http://localhost:8000/api/v1/fish/detect-fishes/" \
      -F "detection_type=ifsp" \
-     -F "file=@path/to/image.jpg"
+     -F "image_file=@path/to/image.jpg"
 ```
 
 ```json
@@ -363,6 +413,27 @@ curl -X POST "http://localhost:8000/detect-fishes/" \
 ```
 
 > For IFSP: `class_id` maps to the predicted species class (e.g. `6` → `Scorpaeniformes`). Refer to the [Species Classes](#species-classes) table for the full class ID mapping.
+
+**Error Response Example:**
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/fish/detect-fishes/" \
+     -F "detection_type=fonf" \
+     -F "image_file=@path/to/document.pdf"
+```
+
+```json
+{
+  "detail": "Invalid image file type. Supported types: image/jpeg, image/png, image/webp"
+}
+```
+
+**Interactive API Documentation:**
+
+FastAPI automatically generates interactive documentation:
+
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
 ---
 
