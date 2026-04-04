@@ -10,14 +10,10 @@ ENV UV_NO_DEV=1
 ENV UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
+COPY . /app/.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
-COPY pyproject.toml uv.lock /app/
-COPY baitwatch /app/baitwatch/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --group prod
+    uv sync --group prod --no-install-project
 
 
 # Then, use a final image without uv
@@ -47,4 +43,4 @@ WORKDIR /app
 RUN mkdir models; mkdir -p data/raw; mkdir -p data/processed
 
 # Run the FastAPI application by default
-CMD ["python", "-m", "baitwatch.interfaces.api", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python", "-m", "baitwatch", "api", "--host", "0.0.0.0", "--port", "8080"]

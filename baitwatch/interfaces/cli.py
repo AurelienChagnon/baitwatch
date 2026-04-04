@@ -55,7 +55,7 @@ def main() -> None:
     # API command
     api_parser = subparsers.add_parser("api", help="Run API")
     api_parser.add_argument("--host", default="127.0.0.1", help="Host to run API on")
-    api_parser.add_argument("--port", default=8080, help="Port to run API on")
+    api_parser.add_argument("--port", type=int, default=8080, help="Port to run API on")
     api_parser.add_argument("--reload", action="store_true", help="Reload API on code changes")
     api_parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
 

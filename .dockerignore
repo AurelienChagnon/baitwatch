@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+.env.local
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Media and static (will be collected in container)
+media/
+staticfiles/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+*.md
+LICENSE
+
+# CI/CD
+.github/
+
+# UV lock file (not needed in container)
+uv.lock
+
+# Other
+.DS_Store
+*.log
+
+# Mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Qodo
+.qodo/
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Project files
+data/
+models/
