@@ -25,19 +25,20 @@ FONF_MAPPING = {
 
 class PredictionResult(BaseModel):
     """Model for interfacing prediction results from keras Models with web interface."""
+
     detection_type: str = Field(..., description="Type of detection performed (fonf or ifsp)")
     prediction: str = Field(..., description="Human-readable prediction result")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score of the prediction")
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Confidence score of the prediction"
+    )
     class_id: int = Field(..., description="Numeric class identifier")
     class_name: str | None = Field(None, description="Scientific/taxonomic name (IFSP only)")
     common_name: str | None = Field(None, description="Common name (IFSP only)")
 
     @classmethod
     def from_predict_result(
-        cls,
-        result: list[list[float]],
-        detection_type: str
-    ) -> 'PredictionResult':
+        cls, result: list[list[float]], detection_type: str
+    ) -> "PredictionResult":
         """Build a PredictionResult object from a keras.Model.predict result.
 
         Args:
@@ -52,7 +53,7 @@ class PredictionResult(BaseModel):
         # Format of ifsp result: [[<proba_class_0>, ..., <proba_class_7>]]
         res = result[0]
         probability = max(res)
-        
+
         if len(res) == 1:
             # FONF: Binary classification
             threshold = 0.5
@@ -60,7 +61,7 @@ class PredictionResult(BaseModel):
             # Reverse probability when class 0
             confidence = probability if class_id else 1 - probability
             prediction = FONF_MAPPING[class_id]
-            
+
             return cls(
                 detection_type=detection_type,
                 prediction=prediction,
@@ -73,8 +74,10 @@ class PredictionResult(BaseModel):
             # IFSP: Multi-class species classification
             class_id = int(np.argmax(res))
             confidence = float(probability)
-            species_info = SPECIES_MAPPING.get(class_id, {"name": "Unknown", "common_name": "Unknown"})
-            
+            species_info = SPECIES_MAPPING.get(
+                class_id, {"name": "Unknown", "common_name": "Unknown"}
+            )
+
             return cls(
                 detection_type=detection_type,
                 prediction=species_info["name"],

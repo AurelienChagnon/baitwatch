@@ -17,9 +17,7 @@ from baitwatch.logger import logger
 from baitwatch.settings import DATASET_NAME, PROJECT_PATH, cloud_settings, dataset_settings
 
 
-def dl_data(
-        path: Path = dataset_settings.RAW_DATA_PATH
-) -> None:
+def dl_data(path: Path = dataset_settings.RAW_DATA_PATH) -> None:
     """Download Baitwatch dataset from Cloud Storage.
 
     Args:
@@ -45,17 +43,18 @@ def dl_data(
         )
     ]
     logger.debug(f"Downloading {len(blobs)} files from bucket")
-    transfer_manager.download_many_to_path(bucket,
-                                           blobs,
-                                           destination_directory=str(local_filename),
-                                           skip_if_exists=True,
-                                           )
+    transfer_manager.download_many_to_path(
+        bucket,
+        blobs,
+        destination_directory=str(local_filename),
+        skip_if_exists=True,
+    )
     logger.info("[SUCCESS] Data downloaded successfully !")
 
 
 def get_images(
-        path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
-        image_size: tuple[int, int] = dataset_settings.ORIGINAL_SIZE,
+    path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
+    image_size: tuple[int, int] = dataset_settings.ORIGINAL_SIZE,
 ) -> tuple[Dataset, Dataset, Dataset]:
     """Retrieve images from the dataset.
 
@@ -80,27 +79,33 @@ def get_images(
         raise FileNotFoundError(error)
 
     # image_dataset_from_directory retrieves images from the directory
-    images_train = keras.utils.image_dataset_from_directory(path / "images" / "train",
-                                                               labels=None,
-                                                               batch_size=None,
-                                                               shuffle=False,
-                                                               image_size=image_size)
-    images_test = keras.utils.image_dataset_from_directory(path / "images" / "test",
-                                                              labels=None,
-                                                              batch_size=None,
-                                                              shuffle=False,
-                                                              image_size=image_size)
-    images_val = keras.utils.image_dataset_from_directory(path / "images" / "valid",
-                                                             labels=None,
-                                                             batch_size=None,
-                                                             shuffle=False,
-                                                             image_size=image_size)
+    images_train = keras.utils.image_dataset_from_directory(
+        path / "images" / "train",
+        labels=None,
+        batch_size=None,
+        shuffle=False,
+        image_size=image_size,
+    )
+    images_test = keras.utils.image_dataset_from_directory(
+        path / "images" / "test",
+        labels=None,
+        batch_size=None,
+        shuffle=False,
+        image_size=image_size,
+    )
+    images_val = keras.utils.image_dataset_from_directory(
+        path / "images" / "valid",
+        labels=None,
+        batch_size=None,
+        shuffle=False,
+        image_size=image_size,
+    )
 
     return images_train, images_val, images_test
 
 
 def get_labels(
-        path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
+    path: Path = dataset_settings.RAW_DATA_PATH / DATASET_NAME,
 ) -> tuple[Dataset, Dataset, Dataset]:
     """Retrieve labels from the dataset.
 
@@ -122,18 +127,15 @@ def get_labels(
         error = f"No data found at {path}"
         raise FileNotFoundError(error)
 
-    labels_train = keras.utils.text_dataset_from_directory(path / "labels" / "train",
-                                                              labels=None,
-                                                              batch_size=None,
-                                                              shuffle=False)
-    labels_test = keras.utils.text_dataset_from_directory(path / "labels" / "test",
-                                                             labels=None,
-                                                             batch_size=None,
-                                                             shuffle=False)
-    labels_val = keras.utils.text_dataset_from_directory(path / "labels" / "valid",
-                                                            labels=None,
-                                                            batch_size=None,
-                                                            shuffle=False)
+    labels_train = keras.utils.text_dataset_from_directory(
+        path / "labels" / "train", labels=None, batch_size=None, shuffle=False
+    )
+    labels_test = keras.utils.text_dataset_from_directory(
+        path / "labels" / "test", labels=None, batch_size=None, shuffle=False
+    )
+    labels_val = keras.utils.text_dataset_from_directory(
+        path / "labels" / "valid", labels=None, batch_size=None, shuffle=False
+    )
 
     return labels_train, labels_val, labels_test
 
@@ -156,10 +158,10 @@ def _clear_directory(path: Path) -> None:
 
 
 def get_processed_dataset(
-        path: Path = dataset_settings.PROCESSED_DATA_PATH,
-        *,
-        image_size: tuple[int, int],
-        label_mode: Literal["int", "categorical", "auto"] = "auto",
+    path: Path = dataset_settings.PROCESSED_DATA_PATH,
+    *,
+    image_size: tuple[int, int],
+    label_mode: Literal["int", "categorical", "auto"] = "auto",
 ) -> tuple[Dataset, Dataset, Dataset]:
     """Load preprocessed images into Dataset with labels.
 
@@ -187,33 +189,34 @@ def get_processed_dataset(
         test_path = path / "train"
         categorical_threshold = 2
         nb_dir = len(
-            [f for f in test_path.iterdir() if f.is_dir() and not f.name.startswith('.')]
+            [f for f in test_path.iterdir() if f.is_dir() and not f.name.startswith(".")]
         )  # Ignore hidden directories
         label_mode = "categorical" if nb_dir > categorical_threshold else "int"
 
-    x_train_ds = keras.utils.image_dataset_from_directory(path / "train",
-                                                             labels="inferred",
-                                                             shuffle=True,
-                                                             image_size=image_size,
-                                                             label_mode=label_mode
-                                                             )
-    x_val_ds = keras.utils.image_dataset_from_directory(path / "val",
-                                                           labels="inferred",
-                                                           shuffle=True,
-                                                           image_size=image_size,
-                                                           label_mode=label_mode)
-    x_test_ds = keras.utils.image_dataset_from_directory(path / "test",
-                                                            labels="inferred",
-                                                            shuffle=True,
-                                                            image_size=image_size,
-                                                            label_mode=label_mode)
+    x_train_ds = keras.utils.image_dataset_from_directory(
+        path / "train",
+        labels="inferred",
+        shuffle=True,
+        image_size=image_size,
+        label_mode=label_mode,
+    )
+    x_val_ds = keras.utils.image_dataset_from_directory(
+        path / "val", labels="inferred", shuffle=True, image_size=image_size, label_mode=label_mode
+    )
+    x_test_ds = keras.utils.image_dataset_from_directory(
+        path / "test",
+        labels="inferred",
+        shuffle=True,
+        image_size=image_size,
+        label_mode=label_mode,
+    )
 
     return x_train_ds, x_val_ds, x_test_ds
 
 
 def dl_augmented_images(
     directory_path: Path = dataset_settings.RAW_DATA_PATH,
-    ) -> None:
+) -> None:
     """Loads augmented images from local storage.
 
     If not available, downloads them from the bucket first.
@@ -221,11 +224,12 @@ def dl_augmented_images(
     Args:
         directory_path (Path): local path to raw_data/
     """
-    augmented_path = directory_path / 'augmented_images'
+    augmented_path = directory_path / "augmented_images"
 
     # ── Download if not available locally ────────────────────────
-    if (not augmented_path.exists()
-            or not [f for f in augmented_path.iterdir() if not f.name.startswith('.')]):
+    if not augmented_path.exists() or not [
+        f for f in augmented_path.iterdir() if not f.name.startswith(".")
+    ]:
         logger.info("[DOWNLOAD] Augmented data not found, downloading from bucket...")
         client = storage.Client()
         bucket = client.bucket(cloud_settings.BUCKET_NAME)
@@ -249,9 +253,9 @@ def dl_augmented_images(
 
 
 def save_dataset_by_label(
-        dataset: Dataset,
-        path: Path,
-        labels: Dataset | None = None,
+    dataset: Dataset,
+    path: Path,
+    labels: Dataset | None = None,
 ) -> None:
     """Save a dataset with images and labels, organizing images by label.
 

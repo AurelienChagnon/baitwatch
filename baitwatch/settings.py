@@ -15,6 +15,7 @@ load_dotenv(PROJECT_PATH / ".env")
 
 class DatasetSettings(BaseSettings):
     """Settings about dataset used for training."""
+
     RAW_DATA_PATH: DirectoryPath = PROJECT_PATH / "data" / "raw"
     PROCESSED_DATA_PATH: DirectoryPath = PROJECT_PATH / "data" / "processed"
     ORIGINAL_SIZE: tuple[int, int] = (1080, 1920)  # Tensorflow: height width
@@ -22,22 +23,26 @@ class DatasetSettings(BaseSettings):
 
 class FonfSettings(BaseSettings):
     """Settings for preprocessing."""
+
     PREPROCESS_IMG_SIZE: tuple[int, int] = (256, 144)  # OpenCV: width height
 
 
 class IfspSettings(BaseSettings):
     """Settings for preprocessing."""
+
     CROP_IMG_SIZE: tuple[int, int] = (105, 256)  # Tensorflow: height width
 
 
 class ModelSettings(BaseSettings):
     """Settings about models."""
+
     MODEL_LOCAL_PATH: DirectoryPath = PROJECT_PATH / "models"
     MODEL_TARGET: str = "local"
 
 
 class CloudSettings(BaseSettings):
     """Settings about the Google Cloud project / buckets..."""
+
     BUCKET_NAME: str = "baitwatch-bucket"
 
 

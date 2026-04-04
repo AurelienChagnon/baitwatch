@@ -1,4 +1,5 @@
 """Web API."""
+
 import io
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -62,8 +63,8 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
                                 "confidence": 0.97,
                                 "class_id": 1,
                                 "class_name": None,
-                                "common_name": None
-                            }
+                                "common_name": None,
+                            },
                         },
                         "fonf_no_fish": {
                             "summary": "FONF - No fish detected",
@@ -73,8 +74,8 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
                                 "confidence": 0.89,
                                 "class_id": 0,
                                 "class_name": None,
-                                "common_name": None
-                            }
+                                "common_name": None,
+                            },
                         },
                         "ifsp_species": {
                             "summary": "IFSP - Species identified",
@@ -84,24 +85,23 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
                                 "confidence": 0.84,
                                 "class_id": 6,
                                 "class_name": "Scorpaeniformes",
-                                "common_name": "Scorpionfish & flatheads"
-                            }
-                        }
+                                "common_name": "Scorpionfish & flatheads",
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
         400: {
             "description": "Bad Request - Invalid file type or file too large",
             "content": {
                 "application/json": {
                     "example": {
-                        "detail":
-                            "Invalid image file type. "
-                            "Supported types: image/jpeg, image/png, image/webp"
+                        "detail": "Invalid image file type. "
+                        "Supported types: image/jpeg, image/png, image/webp"
                     }
                 }
-            }
+            },
         },
         413: {
             "description": "Payload Too Large - File size exceeds limit",
@@ -109,33 +109,29 @@ router = APIRouter(prefix="/fish", tags=["fish-detection"])
                 "application/json": {
                     "example": {"detail": "File size exceeds maximum limit of 10MB"}
                 }
-            }
+            },
         },
         422: {
             "description": "Unprocessable Entity - Invalid image data",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Unable to process image file"}
-                }
-            }
+                "application/json": {"example": {"detail": "Unable to process image file"}}
+            },
         },
         500: {
-            "description":
-                "Internal Server Error - Model not available for the requested detection type",
+            "description": "Internal Server Error - Model not available for the requested detection type",
             "content": {
                 "application/json": {
                     "example": {"detail": "Model not available for detection type: fonf"}
                 }
-            }
-        }
-    }
+            },
+        },
+    },
 )
 async def detect(
-        detection_type: FishDetectionEnum,
-        image_file: Annotated[
-            UploadFile,
-            File(description="Image file to analyze (JPEG, PNG, or WebP)")
-        ],
+    detection_type: FishDetectionEnum,
+    image_file: Annotated[
+        UploadFile, File(description="Image file to analyze (JPEG, PNG, or WebP)")
+    ],
 ) -> PredictionResult:
     """Request a fish detection on given image, according to the detection type.
 
@@ -151,8 +147,9 @@ async def detect(
         HTTPException: If the image file is invalid.
         HTTPException: If the image file is too large.
     """
-    logger.info(f"Received fish detection request: type={detection_type.value}, "
-                f"file={image_file.filename}")
+    logger.info(
+        f"Received fish detection request: type={detection_type.value}, file={image_file.filename}"
+    )
 
     # Validate content type
     allowed_content_types = {"image/jpeg", "image/png", "image/webp"}
@@ -160,7 +157,7 @@ async def detect(
         logger.warning(f"Invalid content type: {image_file.content_type}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid image file type. Supported types: {', '.join(allowed_content_types)}"
+            detail=f"Invalid image file type. Supported types: {', '.join(allowed_content_types)}",
         )
 
     # Ensure Enum object is used
@@ -173,20 +170,20 @@ async def detect(
         logger.warning(f"File size too large: {len(contents)} bytes")
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File size exceeds maximum limit of {max_file_size // (1024 * 1024)}MB"
+            detail=f"File size exceeds maximum limit of {max_file_size // (1024 * 1024)}MB",
         )
 
     logger.debug(f"Image file size: {len(contents)} bytes")
 
     # Parse image file
     try:
-        image = Image.open(io.BytesIO(contents)).convert('RGB')
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
         logger.debug(f"Image dimensions: {image.size}")
     except Exception as e:
         logger.error(f"Failed to process image: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Unable to process image file. Please ensure it's a valid image."
+            detail="Unable to process image file. Please ensure it's a valid image.",
         ) from e
 
     # Get associated model
@@ -195,7 +192,7 @@ async def detect(
         logger.error(f"No model found for detection type {detection_type.value}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Model not available for detection type: {detection_type.value}"
+            detail=f"Model not available for detection type: {detection_type.value}",
         )
 
     logger.info(f"Running fish detection with model for {detection_type.value}")
@@ -206,7 +203,7 @@ async def detect(
         logger.error(f"Error during fish detection: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error occurred during fish detection"
+            detail="An error occurred during fish detection",
         ) from e
     else:
         logger.info(f"Fish detection completed successfully: {prediction_result}")

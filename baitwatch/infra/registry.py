@@ -15,9 +15,7 @@ from baitwatch.settings import cloud_settings, model_settings
 
 
 def save_model(
-    model: keras.Model,
-    model_type: FishDetectionEnum,
-    path: Path = model_settings.MODEL_LOCAL_PATH
+    model: keras.Model, model_type: FishDetectionEnum, path: Path = model_settings.MODEL_LOCAL_PATH
 ) -> None:
     """Save the given model in given path and in the Cloud.
 
@@ -55,7 +53,7 @@ def save_model(
 def load_model(
     model_type: FishDetectionEnum,
     path: Path = model_settings.MODEL_LOCAL_PATH,
-    model_name: str = ""
+    model_name: str = "",
 ) -> keras.Model:
     """Load the model from local or Cloud.
 
@@ -77,7 +75,6 @@ def load_model(
     path /= model_type.value
 
     if model_settings.MODEL_TARGET == "local":
-
         if not path.exists():
             raise FileNotFoundError(path)
 

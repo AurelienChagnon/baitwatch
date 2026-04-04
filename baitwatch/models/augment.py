@@ -1,6 +1,5 @@
 """Module for augmenting image dataset."""
 
-
 import tensorflow as tf
 
 

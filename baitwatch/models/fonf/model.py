@@ -44,15 +44,15 @@ def build_model() -> keras.models.Model:
 
     x = layers.MaxPooling2D((2, 2))(x)
 
-    x = layers.Conv2D(
-        64, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones"
-    )(x)
+    x = layers.Conv2D(64, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones")(
+        x
+    )
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
-    x = layers.Conv2D(
-        64, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones"
-    )(x)
+    x = layers.Conv2D(64, kernel_size=3, kernel_initializer="he_uniform", bias_initializer="ones")(
+        x
+    )
     x = layers.BatchNormalization(momentum=0.99)(x)
     x = layers.LeakyReLU(negative_slope=0.01)(x)
 
@@ -98,9 +98,7 @@ def get_optimizer() -> keras.optimizers.Optimizer:
     return optimizer
 
 
-def compile_model(
-    model: keras.Model, optimizer: keras.optimizers.Optimizer
-) -> keras.Model:
+def compile_model(model: keras.Model, optimizer: keras.optimizers.Optimizer) -> keras.Model:
     """Model compilation for FONF.
 
     Use accuracy, recall, precision and AUC as metrics.
